@@ -373,7 +373,7 @@ iCalendar RFC. Only `freq` is required.
         </td>
     </tr>
     <tr>
-        <td><code>byweekno</code></td>
+        <td><code>aByWeekno</code></td>
         <td>If given, it must be either an integer, or an array of
             integers, meaning the week numbers to apply the recurrence to.
             Week numbers have the meaning described in ISO8601, that is,
@@ -768,7 +768,7 @@ rruleSet.rdate(start)
 ```
 
 * Unlike documented in the RFC, every keyword is valid on every frequency (the
-RFC documents that `byweekno` is only valid on yearly frequencies, for example).
+RFC documents that `aByWeekno` is only valid on yearly frequencies, for example).
 
 ### Development
 

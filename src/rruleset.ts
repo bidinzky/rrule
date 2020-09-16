@@ -4,8 +4,6 @@ import { includes } from './helpers'
 import IterResult from './iterresult'
 import { iterSet } from './iterset'
 import { QueryMethodTypes, IterResultType } from './types'
-import { rrulestr } from './rrulestr'
-import { optionsToString } from './optionstostring'
 
 function createGetterSetter <T> (fieldName: string) {
   return (field?: T) => {
@@ -41,8 +39,8 @@ export default class RRuleSet extends RRule {
    *  The same stratagy as RRule on cache, default to false
    * @constructor
    */
-  constructor (noCache: boolean = false) {
-    super({}, noCache)
+  constructor () {
+    super({})
 
     this._rrule = []
     this._rdate = []
@@ -106,7 +104,7 @@ export default class RRuleSet extends RRule {
    * @return List of rrules
    */
   rrules () {
-    return this._rrule.map(e => rrulestr(e.toString()))
+    return this._rrule.map(e => e.clone())
   }
 
   /**
@@ -115,7 +113,7 @@ export default class RRuleSet extends RRule {
    * @return List of exrules
    */
   exrules () {
-    return this._exrule.map(e => rrulestr(e.toString()))
+    return this._exrule.map(e => e.clone())
   }
 
   /**
@@ -136,55 +134,11 @@ export default class RRuleSet extends RRule {
     return this._exdate.map(e => new Date(e.getTime()))
   }
 
-  valueOf () {
-    let result: string[] = []
-
-    if (!this._rrule.length && this._dtstart) {
-      result = result.concat(optionsToString({ dtstart: this._dtstart }))
-    }
-
-    this._rrule.forEach(function (rrule) {
-      result = result.concat(rrule.toString().split('\n'))
-    })
-
-    this._exrule.forEach(function (exrule) {
-      result = result.concat(
-        exrule.toString().split('\n')
-          .map(line => line.replace(/^RRULE:/, 'EXRULE:'))
-          .filter(line => !/^DTSTART/.test(line))
-      )
-    })
-
-    if (this._rdate.length) {
-      result.push(
-        rdatesToString('RDATE', this._rdate, this.tzid())
-      )
-    }
-
-    if (this._exdate.length) {
-      result.push(
-        rdatesToString('EXDATE', this._exdate, this.tzid())
-      )
-    }
-
-    return result
-  }
-
-  /**
-   * to generate recurrence field such as:
-   *   DTSTART:19970902T010000Z
-   *   RRULE:FREQ=YEARLY;COUNT=2;BYDAY=TU
-   *   RRULE:FREQ=YEARLY;COUNT=1;BYDAY=TH
-   */
-  toString () {
-    return this.valueOf().join('\n')
-  }
-
   /**
    * Create a new RRuleSet Object completely base on current instance
    */
   clone (): RRuleSet {
-    const rrs = new RRuleSet(!!this._cache)
+    const rrs = new RRuleSet()
 
     this._rrule.forEach(rule => rrs.rrule(rule.clone()))
     this._exrule.forEach(rule => rrs.exrule(rule.clone()))

@@ -133,7 +133,7 @@ export class DateTime extends Time {
     this.fixDay()
   }
 
-  public addHours (hours: number, filtered: boolean, byhour: number[]) {
+  public addHours (hours: number, filtered: boolean, aByHour: number[]) {
     if (filtered) {
         // Jump to one iteration before next day
       this.hour += Math.floor((23 - this.hour) / hours) * hours
@@ -147,11 +147,11 @@ export class DateTime extends Time {
         this.addDaily(dayDiv)
       }
 
-      if (empty(byhour) || includes(byhour, this.hour)) break
+      if (empty(aByHour) || includes(aByHour, this.hour)) break
     }
   }
 
-  public addMinutes (minutes: number, filtered: boolean, byhour: number[], byminute: number[]) {
+  public addMinutes (minutes: number, filtered: boolean, aByHour: number[], aByMinute: number[]) {
     if (filtered) {
         // Jump to one iteration before next day
       this.minute +=
@@ -163,19 +163,19 @@ export class DateTime extends Time {
       const { div: hourDiv, mod: minuteMod } = divmod(this.minute, 60)
       if (hourDiv) {
         this.minute = minuteMod
-        this.addHours(hourDiv, false, byhour)
+        this.addHours(hourDiv, false, aByHour)
       }
 
       if (
-          (empty(byhour) || includes(byhour, this.hour)) &&
-          (empty(byminute) || includes(byminute, this.minute))
+          (empty(aByHour) || includes(aByHour, this.hour)) &&
+          (empty(aByMinute) || includes(aByMinute, this.minute))
         ) {
         break
       }
     }
   }
 
-  public addSeconds (seconds: number, filtered: boolean, byhour: number[], byminute: number[], bysecond: number[]) {
+  public addSeconds (seconds: number, filtered: boolean, aByHour: number[], aByMinute: number[], bysecond: number[]) {
     if (filtered) {
         // Jump to one iteration before next day
       this.second +=
@@ -189,12 +189,12 @@ export class DateTime extends Time {
       const { div: minuteDiv, mod: secondMod } = divmod(this.second, 60)
       if (minuteDiv) {
         this.second = secondMod
-        this.addMinutes(minuteDiv, false, byhour, byminute)
+        this.addMinutes(minuteDiv, false, aByHour, aByMinute)
       }
 
       if (
-          (empty(byhour) || includes(byhour, this.hour)) &&
-          (empty(byminute) || includes(byminute, this.minute)) &&
+          (empty(aByHour) || includes(aByHour, this.hour)) &&
+          (empty(aByMinute) || includes(aByMinute, this.minute)) &&
           (empty(bysecond) || includes(bysecond, this.second))
         ) {
         break
@@ -229,22 +229,20 @@ export class DateTime extends Time {
 
   public add (options: ParsedOptions, filtered: boolean) {
     const {
-      freq,
-      interval,
-      wkst,
-      byhour,
-      byminute,
-      bysecond
+      eFreq,
+      dwInterval,
+      aByHour,
+      aByMinute
     } = options
 
-    switch (freq) {
-      case Frequency.YEARLY: return this.addYears(interval)
-      case Frequency.MONTHLY: return this.addMonths(interval)
-      case Frequency.WEEKLY: return this.addWeekly(interval, wkst)
-      case Frequency.DAILY: return this.addDaily(interval)
-      case Frequency.HOURLY: return this.addHours(interval, filtered, byhour)
-      case Frequency.MINUTELY: return this.addMinutes(interval, filtered, byhour, byminute)
-      case Frequency.SECONDLY: return this.addSeconds(interval, filtered, byhour, byminute, bysecond)
+    switch (eFreq) {
+      case Frequency.YEARLY: return this.addYears(dwInterval)
+      case Frequency.MONTHLY: return this.addMonths(dwInterval)
+      case Frequency.WEEKLY: return this.addWeekly(dwInterval, 0)
+      case Frequency.DAILY: return this.addDaily(dwInterval)
+      case Frequency.HOURLY: return this.addHours(dwInterval, filtered, aByHour)
+      case Frequency.MINUTELY: return this.addMinutes(dwInterval, filtered, aByHour, aByMinute)
+      case Frequency.SECONDLY: return this.addSeconds(dwInterval, filtered, aByHour, aByMinute, [0])
     }
   }
 }

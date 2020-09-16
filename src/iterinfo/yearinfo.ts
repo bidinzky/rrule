@@ -2,6 +2,7 @@ import { ParsedOptions } from '../types'
 import dateutil from '../dateutil'
 import { empty, repeat, pymod, includes } from '../helpers'
 import { M365MASK, MDAY365MASK, NMDAY365MASK, WDAYMASK, M365RANGE, M366MASK, MDAY366MASK, NMDAY366MASK, M366RANGE } from '../masks'
+import { ALL_WEEKDAYS, Weekday } from '../weekday'
 
 export interface YearInfo {
   yearlen: 365 | 366
@@ -33,21 +34,21 @@ export function rebuildYear (year: number, options: ParsedOptions) {
     wnomask: null
   }
 
-  if (empty(options.byweekno)) {
+  if (empty(options.aByWeekno)) {
     return result
   }
 
   result.wnomask = repeat(0, yearlen + 7) as number[]
   let firstwkst: number
   let wyearlen: number
-  let no1wkst = firstwkst = pymod(7 - yearweekday + options.wkst, 7)
+  let no1wkst = firstwkst = pymod(7 - yearweekday, 7)
 
   if (no1wkst >= 4) {
     no1wkst = 0
     // Number of days in the year, plus the days we got
     // from last year.
     wyearlen =
-          result.yearlen + pymod(yearweekday - options.wkst, 7)
+          result.yearlen + pymod(yearweekday, 7)
   } else {
     // Number of days in the year, minus the days we
     // left in last year.
@@ -58,8 +59,8 @@ export function rebuildYear (year: number, options: ParsedOptions) {
   const mod = pymod(wyearlen, 7)
   const numweeks = Math.floor(div + mod / 4)
 
-  for (let j = 0; j < options.byweekno.length; j++) {
-    let n = options.byweekno[j]
+  for (let j = 0; j < options.aByWeekno.length; j++) {
+    let n = options.aByWeekno[j]
     if (n < 0) {
       n += numweeks + 1
     }
@@ -80,11 +81,11 @@ export function rebuildYear (year: number, options: ParsedOptions) {
     for (let k = 0; k < 7; k++) {
       result.wnomask[i] = 1
       i++
-      if (result.wdaymask[i] === options.wkst) break
+      if (result.wdaymask[i] === 0) break
     }
   }
 
-  if (includes(options.byweekno, 1)) {
+  if (includes(options.aByWeekno, 1)) {
     // Check week number 1 of next year as well
     // orig-TODO : Check -numweeks for next year.
     let i = no1wkst + numweeks * 7
@@ -95,7 +96,7 @@ export function rebuildYear (year: number, options: ParsedOptions) {
       for (let j = 0; j < 7; j++) {
         result.wnomask[i] = 1
         i += 1
-        if (result.wdaymask[i] === options.wkst) break
+        if (result.wdaymask[i] === 0) break
       }
     }
   }
@@ -108,13 +109,13 @@ export function rebuildYear (year: number, options: ParsedOptions) {
     // days from last year's last week number in
     // this year.
     let lnumweeks: number
-    if (!includes(options.byweekno, -1)) {
+    if (!includes(options.aByWeekno, -1)) {
       const lyearweekday = dateutil.getWeekday(
         new Date(Date.UTC(year - 1, 0, 1))
       )
 
       let lno1wkst = pymod(
-        7 - lyearweekday.valueOf() + options.wkst,
+        7 - lyearweekday.valueOf(),
         7
       )
 
@@ -122,7 +123,7 @@ export function rebuildYear (year: number, options: ParsedOptions) {
       let weekst: number
       if (lno1wkst >= 4) {
         lno1wkst = 0
-        weekst = lyearlen + pymod(lyearweekday - options.wkst, 7)
+        weekst = lyearlen + pymod(lyearweekday - 0, 7)
       } else {
         weekst = yearlen - no1wkst
       }
@@ -132,7 +133,7 @@ export function rebuildYear (year: number, options: ParsedOptions) {
       lnumweeks = -1
     }
 
-    if (includes(options.byweekno, lnumweeks)) {
+    if (includes(options.aByWeekno, lnumweeks)) {
       for (let i = 0; i < no1wkst; i++) result.wnomask[i] = 1
     }
   }

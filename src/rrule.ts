@@ -1,30 +1,11 @@
 import dateutil from './dateutil'
 
-import IterResult, { IterArgs } from './iterresult'
+import IterResult from './iterresult'
 import CallbackIterResult from './callbackiterresult'
-import { Language } from './nlp/i18n'
-import { Nlp } from './nlp/index'
-import { DateFormatter, GetText } from './nlp/totext'
-import { ParsedOptions, Options, Frequency, QueryMethods, QueryMethodTypes, IterResultType } from './types'
+import { ParsedOptions, Options, Frequency, QueryMethods, QueryMethodTypes, IterResultType, EventStartType, CalcSunParams } from './types'
 import { parseOptions, initializeOptions } from './parseoptions'
-import { parseString } from './parsestring'
-import { optionsToString } from './optionstostring'
-import { Cache, CacheKeys } from './cache'
 import { Weekday } from './weekday'
 import { iter } from './iter/index'
-
-interface GetNlp {
-  _nlp: Nlp
-  (): Nlp
-}
-
-const getnlp: GetNlp = function () {
-  // Lazy, runtime import to avoid circular refs.
-  if (!getnlp._nlp) {
-    getnlp._nlp = require('./nlp')
-  }
-  return getnlp._nlp
-} as GetNlp
 
 // =============================================================================
 // RRule
@@ -41,25 +22,21 @@ export const Days = {
 }
 
 export const DEFAULT_OPTIONS: Options = {
-  freq: Frequency.YEARLY,
-  dtstart: null,
-  interval: 1,
-  wkst: Days.MO,
-  count: null,
-  until: null,
+  eFreq: Frequency.YEARLY,
+  dtStart: null,
+  dwInterval: 1,
+  eStartTimeType: EventStartType.NORMAL,
+  diCount: null,
+  dtUntil: null,
   tzid: null,
   bysetpos: null,
-  bymonth: null,
-  bymonthday: null,
-  bynmonthday: null,
-  byyearday: null,
-  byweekno: null,
-  byweekday: null,
-  bynweekday: null,
-  byhour: null,
-  byminute: null,
-  bysecond: null,
-  byeaster: null
+  aByMonth: null,
+  aByMonthday: null,
+  aByYearday: null,
+  aByWeekno: null,
+  aByWeekday: null,
+  aByHour: null,
+  aByMinute: null
 }
 
 export const defaultKeys = Object.keys(DEFAULT_OPTIONS) as (keyof Options)[]
@@ -74,6 +51,7 @@ export default class RRule implements QueryMethods {
   public _cache: Cache | null
   public origOptions: Partial<Options>
   public options: ParsedOptions
+  public calcSunParams: CalcSunParams | null
 
   // RRule class 'constants'
 
@@ -103,48 +81,17 @@ export default class RRule implements QueryMethods {
   static readonly SA = Days.SA
   static readonly SU = Days.SU
 
-  constructor (options: Partial<Options> = {}, noCache: boolean = false) {
-    // RFC string
-    this._cache = noCache ? null : new Cache()
+  constructor (options: Partial<Options> = {}, calcSunParams: CalcSunParams | null = null) {
 
     // used by toString()
     this.origOptions = initializeOptions(options)
     const { parsedOptions } = parseOptions(options)
     this.options = parsedOptions
+    this.calcSunParams = calcSunParams
   }
-
-  static parseText (text: string, language?: Language) {
-    return getnlp().parseText(text, language)
-  }
-
-  static fromText (text: string, language?: Language) {
-    return getnlp().fromText(text, language)
-  }
-
-  static parseString = parseString
-
-  static fromString (str: string) {
-    return new RRule(RRule.parseString(str) || undefined)
-  }
-
-  static optionsToString = optionsToString
 
   protected _iter <M extends QueryMethodTypes> (iterResult: IterResult<M>): IterResultType<M> {
-    return iter(iterResult, this.options)
-  }
-
-  private _cacheGet (what: CacheKeys | 'all', args?: Partial<IterArgs>) {
-    if (!this._cache) return false
-    return this._cache._cacheGet(what, args)
-  }
-
-  public _cacheAdd (
-    what: CacheKeys | 'all',
-    value: Date[] | Date | null,
-    args?: Partial<IterArgs>
-  ) {
-    if (!this._cache) return
-    return this._cache._cacheAdd(what, value, args)
+    return iter(iterResult, this.options, this.calcSunParams)
   }
 
   /**
@@ -158,12 +105,7 @@ export default class RRule implements QueryMethods {
       return this._iter(new CallbackIterResult('all', {}, iterator))
     }
 
-    let result = this._cacheGet('all') as Date[] | false
-    if (result === false) {
-      result = this._iter(new IterResult('all', {}))
-      this._cacheAdd('all', result)
-    }
-    return result
+    return this._iter(new IterResult('all', {}))
   }
 
   /**
@@ -192,12 +134,7 @@ export default class RRule implements QueryMethods {
       )
     }
 
-    let result = this._cacheGet('between', args)
-    if (result === false) {
-      result = this._iter(new IterResult('between', args))
-      this._cacheAdd('between', result, args)
-    }
-    return result as Date[]
+    return this._iter(new IterResult('between', args))
   }
 
   /**
@@ -209,12 +146,7 @@ export default class RRule implements QueryMethods {
   before (dt: Date, inc = false): Date {
     if (!dateutil.isValidDate(dt)) throw new Error('Invalid date passed in to RRule.before')
     const args = { dt: dt, inc: inc }
-    let result = this._cacheGet('before', args)
-    if (result === false) {
-      result = this._iter(new IterResult('before', args))
-      this._cacheAdd('before', result, args)
-    }
-    return result as Date
+    return this._iter(new IterResult('before', args)) as Date
   }
 
   /**
@@ -226,12 +158,7 @@ export default class RRule implements QueryMethods {
   after (dt: Date, inc = false): Date {
     if (!dateutil.isValidDate(dt)) throw new Error('Invalid date passed in to RRule.after')
     const args = { dt: dt, inc: inc }
-    let result = this._cacheGet('after', args)
-    if (result === false) {
-      result = this._iter(new IterResult('after', args))
-      this._cacheAdd('after', result, args)
-    }
-    return result as Date
+    return this._iter(new IterResult('after', args)) as Date
   }
 
   /**
@@ -240,27 +167,6 @@ export default class RRule implements QueryMethods {
    */
   count (): number {
     return this.all().length
-  }
-
-  /**
-   * Converts the rrule into its string representation
-   * @see <http://www.ietf.org/rfc/rfc2445.txt>
-   * @return String
-   */
-  toString () {
-    return optionsToString(this.origOptions)
-  }
-
-  /**
-   * Will convert all rules described in nlp:ToText
-   * to text.
-   */
-  toText (gettext?: GetText, language?: Language, dateFormatter?: DateFormatter) {
-    return getnlp().toText(this, gettext, language, dateFormatter)
-  }
-
-  isFullyConvertibleToText () {
-    return getnlp().isFullyConvertible(this)
   }
 
   /**

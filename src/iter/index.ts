@@ -1,5 +1,5 @@
 import IterResult from '../iterresult'
-import { ParsedOptions, freqIsDailyOrGreater, QueryMethodTypes } from '../types'
+import { ParsedOptions, freqIsDailyOrGreater, QueryMethodTypes, EventStartType, CalcSunParams } from '../types'
 import dateutil from '../dateutil'
 import Iterinfo from '../iterinfo/index'
 import RRule from '../rrule'
@@ -8,22 +8,23 @@ import { notEmpty, includes, isPresent } from '../helpers'
 import { DateWithZone } from '../datewithzone'
 import { buildPoslist } from './poslist'
 import { Time, DateTime } from '../datetime'
+import { CalcSunRise } from '../CalcSunRise'
 
-export function iter <M extends QueryMethodTypes> (iterResult: IterResult<M>, options: ParsedOptions) {
+export function iter <M extends QueryMethodTypes> (iterResult: IterResult<M>, options: ParsedOptions, calcSunParams: CalcSunParams | null = null) {
   const {
-    dtstart,
-    freq,
-    interval,
-    until,
+    dtStart,
+    eFreq,
+    dwInterval,
+    dtUntil,
     bysetpos
   } = options
 
-  let count = options.count
-  if (count === 0 || interval === 0) {
+  let count = options.diCount
+  if (count === 0 || dwInterval === 0) {
     return emitResult(iterResult)
   }
 
-  let counterDate = DateTime.fromDate(dtstart)
+  let counterDate = DateTime.fromDate(dtStart)
 
   const ii = new Iterinfo(options)
   ii.rebuild(counterDate.year, counterDate.month)
@@ -31,7 +32,7 @@ export function iter <M extends QueryMethodTypes> (iterResult: IterResult<M>, op
   let timeset = makeTimeset(ii, counterDate, options)
 
   while (true) {
-    let [dayset, start, end] = ii.getdayset(freq)(
+    let [dayset, start, end] = ii.getdayset(eFreq)(
       counterDate.year,
       counterDate.month,
       counterDate.day
@@ -44,11 +45,11 @@ export function iter <M extends QueryMethodTypes> (iterResult: IterResult<M>, op
 
       for (let j = 0; j < poslist.length; j++) {
         const res = poslist[j]
-        if (until && res > until) {
+        if (dtUntil && res > dtUntil) {
           return emitResult(iterResult)
         }
 
-        if (res >= dtstart) {
+        if (res >= dtStart) {
           const rezonedDate = rezoneIfNeeded(res, options)
           if (!iterResult.accept(rezonedDate)) {
             return emitResult(iterResult)
@@ -70,30 +71,68 @@ export function iter <M extends QueryMethodTypes> (iterResult: IterResult<M>, op
         }
 
         const date = dateutil.fromOrdinal(ii.yearordinal + currentDay)
-        for (let k = 0; k < timeset!.length; k++) {
-          const time = timeset![k]
-          const res = dateutil.combine(date, time)
-          if (until && res > until) {
-            return emitResult(iterResult)
-          }
-
-          if (res >= dtstart) {
-            const rezonedDate = rezoneIfNeeded(res, options)
-            if (!iterResult.accept(rezonedDate)) {
+        if (options.eStartTimeType === EventStartType.NORMAL) {
+          for (let k = 0; k < timeset!.length; k++) {
+            const time = timeset![k]
+            const res = dateutil.combine(date, time)
+            if (dtUntil && res > dtUntil) {
               return emitResult(iterResult)
             }
 
-            if (count) {
-              --count
-              if (!count) {
+            if (res >= dtStart) {
+              const rezonedDate = rezoneIfNeeded(res, options)
+              if (!iterResult.accept(rezonedDate)) {
                 return emitResult(iterResult)
               }
+
+              if (count) {
+                --count
+                if (!count) {
+                  return emitResult(iterResult)
+                }
+              }
             }
+          }
+        } else {
+          if (calcSunParams) {
+            let sr = CalcSunRise(date, calcSunParams.lat, calcSunParams.lon, calcSunParams.tz, calcSunParams.deltaT, calcSunParams.twilightOffset)
+            let res: Date
+            switch (options.eStartTimeType) {
+              case EventStartType.DAWN:
+                res = sr.dawn
+                break
+              case EventStartType.DUSK:
+                res = sr.dusk
+                break
+              case EventStartType.SUNRISE:
+                res = sr.rise
+                break
+              case EventStartType.SUNSET:
+                res = sr.set
+                break
+              default:
+                throw new Error(`unknown starttype ${options.eStartTimeType}`)
+            }
+            if (res >= dtStart) {
+              const rezonedDate = rezoneIfNeeded(res, options)
+              if (!iterResult.accept(rezonedDate)) {
+                return emitResult(iterResult)
+              }
+
+              if (count) {
+                --count
+                if (!count) {
+                  return emitResult(iterResult)
+                }
+              }
+            }
+          } else {
+            throw new Error('calcSunParams must not be undefined when startType other than normal is used')
           }
         }
       }
     }
-    if (options.interval === 0) {
+    if (options.dwInterval === 0) {
       return emitResult(iterResult)
     }
 
@@ -104,8 +143,8 @@ export function iter <M extends QueryMethodTypes> (iterResult: IterResult<M>, op
       return emitResult(iterResult)
     }
 
-    if (!freqIsDailyOrGreater(freq)) {
-      timeset = ii.gettimeset(freq)(counterDate.hour, counterDate.minute, counterDate.second, 0)
+    if (!freqIsDailyOrGreater(eFreq)) {
+      timeset = ii.gettimeset(eFreq)(counterDate.hour, counterDate.minute, counterDate.second, 0)
     }
 
     ii.rebuild(counterDate.year, counterDate.month)
@@ -118,31 +157,27 @@ function isFiltered (
   options: ParsedOptions
 ): boolean {
   const {
-    bymonth,
-    byweekno,
-    byweekday,
-    byeaster,
-    bymonthday,
-    bynmonthday,
-    byyearday
+    aByMonth,
+    aByMonthday,
+    aByYearday,
+    aByWeekno,
+    aByWeekday,
+    aByHour,
+    aByMinute
   } = options
 
   return (
-    (notEmpty(bymonth) && !includes(bymonth, ii.mmask[currentDay])) ||
-    (notEmpty(byweekno) && !ii.wnomask![currentDay]) ||
-    (notEmpty(byweekday) && !includes(byweekday, ii.wdaymask[currentDay])) ||
-    (notEmpty(ii.nwdaymask) && !ii.nwdaymask[currentDay]) ||
-    (byeaster !== null && !includes(ii.eastermask!, currentDay)) ||
-    ((notEmpty(bymonthday) || notEmpty(bynmonthday)) &&
-      !includes(bymonthday, ii.mdaymask[currentDay]) &&
-      !includes(bynmonthday, ii.nmdaymask[currentDay])) ||
-    (notEmpty(byyearday) &&
+    (notEmpty(aByMonth) && !includes(aByMonth, ii.mmask[currentDay])) ||
+    (notEmpty(aByWeekno) && !ii.wnomask![currentDay]) ||
+    (notEmpty(aByWeekday) && !includes(aByWeekday, ii.wdaymask[currentDay])) ||
+    (notEmpty(aByMonthday) || !includes(aByMonthday, ii.mdaymask[currentDay])) ||
+    (notEmpty(aByYearday) &&
       ((currentDay < ii.yearlen &&
-        !includes(byyearday, currentDay + 1) &&
-        !includes(byyearday, -ii.yearlen + currentDay)) ||
+        !includes(aByYearday, currentDay + 1) &&
+        !includes(aByYearday, -ii.yearlen + currentDay)) ||
         (currentDay >= ii.yearlen &&
-          !includes(byyearday, currentDay + 1 - ii.yearlen) &&
-          !includes(byyearday, -ii.nextyearlen + currentDay - ii.yearlen))))
+          !includes(aByYearday, currentDay + 1 - ii.yearlen) &&
+          !includes(aByYearday, -ii.nextyearlen + currentDay - ii.yearlen))))
   )
 }
 
@@ -173,31 +208,27 @@ function removeFilteredDays (dayset: (number | null)[], start: number, end: numb
 
 function makeTimeset (ii: Iterinfo, counterDate: DateTime, options: ParsedOptions): Time[] | null {
   const {
-    freq,
-    byhour,
-    byminute,
-    bysecond
+    eFreq,
+    aByHour,
+    aByMinute
   } = options
 
-  if (freqIsDailyOrGreater(freq)) {
+  if (freqIsDailyOrGreater(eFreq)) {
     return buildTimeset(options)
   }
 
   if (
-    (freq >= RRule.HOURLY &&
-      notEmpty(byhour) &&
-      !includes(byhour, counterDate.hour)) ||
-    (freq >= RRule.MINUTELY &&
-      notEmpty(byminute) &&
-      !includes(byminute, counterDate.minute)) ||
-    (freq >= RRule.SECONDLY &&
-      notEmpty(bysecond) &&
-      !includes(bysecond, counterDate.second))
+    (eFreq >= RRule.HOURLY &&
+      notEmpty(aByHour) &&
+      !includes(aByHour, counterDate.hour)) ||
+    (eFreq >= RRule.MINUTELY &&
+      notEmpty(aByMinute) &&
+      !includes(aByMinute, counterDate.minute))
   ) {
     return []
   }
 
-  return ii.gettimeset(freq)(
+  return ii.gettimeset(eFreq)(
     counterDate.hour,
     counterDate.minute,
     counterDate.second,

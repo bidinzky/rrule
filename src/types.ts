@@ -20,45 +20,54 @@ export enum Frequency {
   SECONDLY = 6
 }
 
+export enum EventStartType {
+  NORMAL = 0,
+	SUNRISE = 1,
+	DAWN = 2,
+	DUSK = 3,
+	SUNSET = 4
+}
+
 export function freqIsDailyOrGreater (freq: Frequency): freq is Frequency.YEARLY | Frequency.MONTHLY | Frequency.WEEKLY | Frequency.DAILY {
   return freq < Frequency.HOURLY
 }
 
+export interface CalcSunParams {
+  lat: number
+  lon: number
+  tz: number
+  deltaT: number
+  twilightOffset: number
+}
+
 export interface Options {
-  freq: Frequency
-  dtstart: Date | null
-  interval: number
-  wkst: Weekday | number | null
-  count: number | null
-  until: Date | null
+  eFreq: Frequency
+  eStartTimeType: EventStartType | null
+  dtStart: Date | null
+  dwInterval: number
+  diCount: number | null
+  dtUntil: Date | null
   tzid: string | null
   bysetpos: number | number[] | null
-  bymonth: number | number[] | null
-  bymonthday: number | number[] | null
-  bynmonthday: number[] | null
-  byyearday: number | number[] | null
-  byweekno: number | number[] | null
-  byweekday: ByWeekday | ByWeekday[] | null
-  bynweekday: number[][] | null
-  byhour: number | number[] | null
-  byminute: number | number[] | null
-  bysecond: number | number[] | null
-  byeaster: number | null
+  aByMonth: number | number[] | null
+  aByMonthday: number | number[] | null
+  aByYearday: number | number[] | null
+  aByWeekno: number | number[] | null
+  aByWeekday: ByWeekday | ByWeekday[] | null
+  aByHour: number | number[] | null
+  aByMinute: number | number[] | null
 }
 
 export interface ParsedOptions extends Options {
-  dtstart: Date
-  wkst: number
+  dtStart: Date
   bysetpos: number[]
-  bymonth: number[]
-  bymonthday: number[]
-  bynmonthday: number[]
-  byyearday: number[]
-  byweekno: number[]
-  byweekday: number[]
-  byhour: number[]
-  byminute: number[]
-  bysecond: number[]
+  aByMonth: number[]
+  aByMonthday: number[]
+  aByYearday: number[]
+  aByWeekno: number[]
+  aByWeekday: number[]
+  aByHour: number[]
+  aByMinute: number[]
 }
 
 export type ByWeekday = WeekdayStr | number | Weekday

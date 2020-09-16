@@ -8,7 +8,6 @@ import {
 import { ParsedOptions, Frequency } from '../types'
 import { YearInfo, rebuildYear } from './yearinfo'
 import { rebuildMonth, MonthInfo } from './monthinfo'
-import { easter } from './easter'
 import { Time } from '../datetime'
 
 export type DaySet = [(number | null)[], number, number]
@@ -32,18 +31,9 @@ export default class Iterinfo {
       this.yearinfo = rebuildYear(year, options)
     }
 
-    if (
-      notEmpty(options.bynweekday!) &&
-      (month !== this.lastmonth || year !== this.lastyear)
-    ) {
+    if (month !== this.lastmonth || year !== this.lastyear) {
       const { yearlen, mrange, wdaymask } = this.yearinfo
-      this.monthinfo = rebuildMonth(
-        year, month, yearlen, mrange, wdaymask, options
-      )
-    }
-
-    if (isPresent(options.byeaster)) {
-      this.eastermask = easter(year, options.byeaster)
+      this.monthinfo = rebuildMonth(year, month,yearlen,mrange,wdaymask, options)
     }
   }
 
@@ -77,10 +67,6 @@ export default class Iterinfo {
 
   get wnomask () {
     return this.yearinfo.wnomask
-  }
-
-  get nwdaymask () {
-    return this.monthinfo ? this.monthinfo.nwdaymask : []
   }
 
   get nextyearlen () {
@@ -117,7 +103,7 @@ export default class Iterinfo {
     for (let j = 0; j < 7; j++) {
       set[i] = i
       ++i
-      if (this.wdaymask[i] === this.options.wkst) break
+      if (this.wdaymask[i] === 0) break
     }
     return [set, start, i]
   }
@@ -133,7 +119,7 @@ export default class Iterinfo {
 
   htimeset (hour: number, _: number, second: number, millisecond: number) {
     let set: Time[] = []
-    this.options.byminute.forEach(minute => {
+    this.options.aByMinute.forEach(minute => {
       set = set.concat(this.mtimeset(hour, minute, second, millisecond))
     })
     dateutil.sort(set)
@@ -141,11 +127,9 @@ export default class Iterinfo {
   }
 
   mtimeset (hour: number, minute: number, _: number, millisecond: number) {
-    const set = this.options.bysecond.map(second =>
-      new Time(hour, minute, second, millisecond)
-    )
-
-    dateutil.sort(set)
+    const set = [
+      new Time(hour, minute, 0, millisecond)
+    ]
     return set
   }
 

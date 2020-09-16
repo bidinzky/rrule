@@ -15,31 +15,17 @@ export function initializeOptions (options: Partial<Options>) {
     if (dateutil.isDate(options[key]) && !dateutil.isValidDate(options[key])) invalid.push(key)
   }
 
-  if (invalid.length) {
-    throw new Error('Invalid options: ' + invalid.join(', '))
-  }
-
   return { ...options }
 }
 
 export function parseOptions (options: Partial<Options>) {
   const opts = { ...DEFAULT_OPTIONS, ...initializeOptions(options) }
 
-  if (isPresent(opts.byeaster)) opts.freq = RRule.YEARLY
-
-  if (!(isPresent(opts.freq) && RRule.FREQUENCIES[opts.freq])) {
-    throw new Error(`Invalid frequency: ${opts.freq} ${options.freq}`)
+  if (!(isPresent(opts.eFreq) && RRule.FREQUENCIES[opts.eFreq])) {
+    throw new Error(`Invalid frequency: ${opts.eFreq} ${options.eFreq}`)
   }
 
-  if (!opts.dtstart) opts.dtstart = new Date(new Date().setMilliseconds(0))
-
-  if (!isPresent(opts.wkst)) {
-    opts.wkst = RRule.MO.weekday
-  } else if (isNumber(opts.wkst)) {
-    // cool, just keep it like that
-  } else {
-    opts.wkst = opts.wkst.weekday
-  }
+  if (!opts.dtStart) opts.dtStart = new Date(new Date().setMilliseconds(0))
 
   if (isPresent(opts.bysetpos)) {
     if (isNumber(opts.bysetpos)) opts.bysetpos = [opts.bysetpos]
@@ -56,155 +42,132 @@ export function parseOptions (options: Partial<Options>) {
 
   if (
     !(
-      Boolean(opts.byweekno as number) ||
-      notEmpty(opts.byweekno as number[]) ||
-      notEmpty(opts.byyearday as number[]) ||
-      Boolean(opts.bymonthday) ||
-      notEmpty(opts.bymonthday as number[]) ||
-      isPresent(opts.byweekday) ||
-      isPresent(opts.byeaster)
+      Boolean(opts.aByWeekno as number) ||
+      notEmpty(opts.aByWeekno as number[]) ||
+      notEmpty(opts.aByYearday as number[]) ||
+      Boolean(opts.aByMonthday) ||
+      notEmpty(opts.aByMonthday as number[]) ||
+      isPresent(opts.aByWeekday)
     )
   ) {
-    switch (opts.freq) {
+    switch (opts.eFreq) {
       case RRule.YEARLY:
-        if (!opts.bymonth) opts.bymonth = opts.dtstart.getUTCMonth() + 1
-        opts.bymonthday = opts.dtstart.getUTCDate()
+        if (!opts.aByMonth) opts.aByMonth = opts.dtStart.getUTCMonth() + 1
+        opts.aByMonthday = opts.dtStart.getUTCDate()
         break
       case RRule.MONTHLY:
-        opts.bymonthday = opts.dtstart.getUTCDate()
+        opts.aByMonthday = opts.dtStart.getUTCDate()
         break
       case RRule.WEEKLY:
-        opts.byweekday = [dateutil.getWeekday(opts.dtstart)]
+        opts.aByWeekday = [dateutil.getWeekday(opts.dtStart)]
         break
     }
   }
 
-  // bymonth
-  if (isPresent(opts.bymonth) && !isArray(opts.bymonth)) {
-    opts.bymonth = [opts.bymonth]
+  // aByMonth
+  if (isPresent(opts.aByMonth) && !isArray(opts.aByMonth)) {
+    opts.aByMonth = [opts.aByMonth]
   }
 
-  // byyearday
+  // aByYearday
   if (
-    isPresent(opts.byyearday) &&
-    !isArray(opts.byyearday) &&
-    isNumber(opts.byyearday)
+    isPresent(opts.aByYearday) &&
+    !isArray(opts.aByYearday) &&
+    isNumber(opts.aByYearday)
   ) {
-    opts.byyearday = [opts.byyearday]
+    opts.aByYearday = [opts.aByYearday]
   }
 
-  // bymonthday
-  if (!isPresent(opts.bymonthday)) {
-    opts.bymonthday = []
-    opts.bynmonthday = []
-  } else if (isArray(opts.bymonthday)) {
-    const bymonthday = []
-    const bynmonthday = []
+  // aByMonthday
+  if (!isPresent(opts.aByMonthday)) {
+    opts.aByMonthday = []
+  } else if (isArray(opts.aByMonthday)) {
+    const aByMonthday = []
 
-    for (let i = 0; i < opts.bymonthday.length; i++) {
-      const v = opts.bymonthday[i]
+    for (let i = 0; i < opts.aByMonthday.length; i++) {
+      const v = opts.aByMonthday[i]
       if (v > 0) {
-        bymonthday.push(v)
-      } else if (v < 0) {
-        bynmonthday.push(v)
+        aByMonthday.push(v)
       }
     }
-    opts.bymonthday = bymonthday
-    opts.bynmonthday = bynmonthday
-  } else if (opts.bymonthday < 0) {
-    opts.bynmonthday = [opts.bymonthday]
-    opts.bymonthday = []
+    opts.aByMonthday = aByMonthday
+  } else if (opts.aByMonthday < 0) {
+    opts.aByMonthday = []
   } else {
-    opts.bynmonthday = []
-    opts.bymonthday = [opts.bymonthday]
+    opts.aByMonthday = [opts.aByMonthday]
   }
 
-  // byweekno
-  if (isPresent(opts.byweekno) && !isArray(opts.byweekno)) {
-    opts.byweekno = [opts.byweekno]
+  // abyweekn.aByWeekno
+  if (isPresent(opts.aByWeekno) && !isArray(opts.aByWeekno)) {
+    opts.aByWeekno = [opts.aByWeekno]
   }
 
-  // byweekday / bynweekday
-  if (!isPresent(opts.byweekday)) {
-    opts.bynweekday = null
-  } else if (isNumber(opts.byweekday)) {
-    opts.byweekday = [opts.byweekday]
-    opts.bynweekday = null
-  } else if (isWeekdayStr(opts.byweekday)) {
-    opts.byweekday = [Weekday.fromStr(opts.byweekday).weekday]
-    opts.bynweekday = null
-  } else if (opts.byweekday instanceof Weekday) {
-    if (!opts.byweekday.n || opts.freq > RRule.MONTHLY) {
-      opts.byweekday = [opts.byweekday.weekday]
-      opts.bynweekday = null
+  // aByWeekday / bynweekday
+  if (!isPresent(opts.aByWeekday)) {
+    opts.aByWeekday = null
+  } else if (isNumber(opts.aByWeekday)) {
+    opts.aByWeekday = [opts.aByWeekday]
+  } else if (isWeekdayStr(opts.aByWeekday)) {
+    opts.aByWeekday = [Weekday.fromStr(opts.aByWeekday).weekday]
+  } else if (opts.aByWeekday instanceof Weekday) {
+    if (!opts.aByWeekday.n || opts.eFreq > RRule.MONTHLY) {
+      opts.aByWeekday = [opts.aByWeekday.weekday]
     } else {
-      opts.bynweekday = [[opts.byweekday.weekday, opts.byweekday.n]]
-      opts.byweekday = null
+      opts.aByWeekday = null
     }
   } else {
-    const byweekday: number[] = []
+    const aByWeekday: number[] = []
     const bynweekday = []
 
-    for (let i = 0; i < opts.byweekday.length; i++) {
-      const wday = opts.byweekday[i]
+    for (let i = 0; i < opts.aByWeekday.length; i++) {
+      const wday = opts.aByWeekday[i]
 
       if (isNumber(wday)) {
-        byweekday.push(wday)
+        aByWeekday.push(wday)
         continue
       } else if (isWeekdayStr(wday)) {
-        byweekday.push(Weekday.fromStr(wday).weekday)
+        aByWeekday.push(Weekday.fromStr(wday).weekday)
         continue
       }
 
-      if (!wday.n || opts.freq > RRule.MONTHLY) {
-        byweekday.push(wday.weekday)
+      if (!wday.n || opts.eFreq > RRule.MONTHLY) {
+        aByWeekday.push(wday.weekday)
       } else {
         bynweekday.push([wday.weekday, wday.n])
       }
     }
-    opts.byweekday = notEmpty(byweekday) ? byweekday : null
-    opts.bynweekday = notEmpty(bynweekday) ? bynweekday : null
+    opts.aByWeekday = notEmpty(aByWeekday) ? aByWeekday : null
   }
 
-  // byhour
-  if (!isPresent(opts.byhour)) {
-    opts.byhour =
-      opts.freq < RRule.HOURLY ? [opts.dtstart.getUTCHours()] : null
-  } else if (isNumber(opts.byhour)) {
-    opts.byhour = [opts.byhour]
+  // aByHour
+  if (!isPresent(opts.aByHour)) {
+    opts.aByHour =
+      opts.eFreq < RRule.HOURLY ? [opts.dtStart.getUTCHours()] : null
+  } else if (isNumber(opts.aByHour)) {
+    opts.aByHour = [opts.aByHour]
   }
 
-  // byminute
-  if (!isPresent(opts.byminute)) {
-    opts.byminute =
-      opts.freq < RRule.MINUTELY ? [opts.dtstart.getUTCMinutes()] : null
-  } else if (isNumber(opts.byminute)) {
-    opts.byminute = [opts.byminute]
-  }
-
-  // bysecond
-  if (!isPresent(opts.bysecond)) {
-    opts.bysecond =
-      opts.freq < RRule.SECONDLY ? [opts.dtstart.getUTCSeconds()] : null
-  } else if (isNumber(opts.bysecond)) {
-    opts.bysecond = [opts.bysecond]
+  // aByMinute
+  if (!isPresent(opts.aByMinute)) {
+    opts.aByMinute =
+      opts.eFreq < RRule.MINUTELY ? [opts.dtStart.getUTCMinutes()] : null
+  } else if (isNumber(opts.aByMinute)) {
+    opts.aByMinute = [opts.aByMinute]
   }
 
   return { parsedOptions: opts as ParsedOptions }
 }
 
 export function buildTimeset (opts: ParsedOptions) {
-  const millisecondModulo = opts.dtstart.getTime() % 1000
-  if (!freqIsDailyOrGreater(opts.freq)) {
+  const millisecondModulo = opts.dtStart.getTime() % 1000
+  if (!freqIsDailyOrGreater(opts.eFreq)) {
     return []
   }
 
   const timeset: Time[] = []
-  opts.byhour.forEach(hour => {
-    opts.byminute.forEach(minute => {
-      opts.bysecond.forEach(second => {
-        timeset.push(new Time(hour, minute, second, millisecondModulo))
-      })
+  opts.aByHour.forEach(hour => {
+    opts.aByMinute.forEach(minute => {
+      timeset.push(new Time(hour, minute, 0, millisecondModulo))
     })
   })
 

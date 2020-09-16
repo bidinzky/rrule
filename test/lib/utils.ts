@@ -1,7 +1,8 @@
 import { expect } from 'chai'
 import { ExclusiveTestFunction, TestFunction } from 'mocha'
-import { RRule, RRuleSet } from '../../src'
+import { RRule } from '../../src'
 import { DateTime } from 'luxon';
+import { debug } from 'console';
 
 const assertDatesEqual = function (actual: Date | Date[], expected: Date | Date[], msg?: string) {
   msg = msg ? ' [' + msg + '] ' : ''
@@ -72,7 +73,7 @@ export const testRecurring = function (
     testObj = testObj()
   }
 
-  if (testObj instanceof RRule || testObj instanceof RRuleSet) {
+  if (testObj instanceof RRule) {
     rule = testObj
     method = 'all'
     args = []
@@ -82,16 +83,10 @@ export const testRecurring = function (
     args = testObj.args
   }
 
-  // Use text and string representation of the rrule as the message.
-  if (rule instanceof RRule) {
-    msg = msg + ' [' +
-      (rule.isFullyConvertibleToText() ? rule.toText() : 'no text repr') +
-      ']' + ' [' + rule.toString() + ']'
-  } else {
-    msg = msg + ' ' + rule.toString()
-  }
+
 
   itFunc(msg, function () {
+    debugger;
     const ctx = this.test.ctx
     let time = Date.now()
     let actualDates = rule[method].apply(rule, args)
@@ -103,7 +98,6 @@ export const testRecurring = function (
 
     if (!(actualDates instanceof Array)) actualDates = [actualDates]
     if (!(expectedDates instanceof Array)) expectedDates = [expectedDates]
-
     assertDatesEqual(actualDates, expectedDates)
 
     // Additional tests using the expected dates
@@ -111,30 +105,6 @@ export const testRecurring = function (
 
     if (ctx.ALSO_TEST_SUBSECOND_PRECISION) {
       expect(actualDates.map(extractTime)).to.deep.equal(expectedDates.map(extractTime))
-    }
-
-    if (ctx.ALSO_TEST_STRING_FUNCTIONS) {
-      // Test toString()/fromString()
-      const str = rule.toString()
-      const rrule2 = RRule.fromString(str)
-      const string2 = rrule2.toString()
-      expect(str).to.equal(string2, 'toString() == fromString(toString()).toString()')
-      if (method === 'all') {
-        assertDatesEqual(rrule2.all(), expectedDates, 'fromString().all()')
-      }
-    }
-
-    if (ctx.ALSO_TEST_NLP_FUNCTIONS && rule.isFullyConvertibleToText && rule.isFullyConvertibleToText()) {
-      // Test fromText()/toText().
-      const str = rule.toString()
-      const text = rule.toText()
-      const rrule2 = RRule.fromText(text, rule.options.dtstart)
-      const text2 = rrule2.toText()
-      expect(text2).to.equal(text, 'toText() == fromText(toText()).toText()')
-
-      // Test fromText()/toString().
-      const rrule3 = RRule.fromText(text, rule.options.dtstart)
-      expect(rrule3.toString()).to.equal(str, 'toString() == fromText(toText()).toString()')
     }
 
     if (method === 'all' && ctx.ALSO_TEST_BEFORE_AFTER_BETWEEN) {

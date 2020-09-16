@@ -1,67 +1,40 @@
 import { parse, datetime, testRecurring, expectedDate } from './lib/utils'
 import { expect } from 'chai'
-import { RRule, rrulestr, Frequency } from '../src/index'
+import { RRule, Frequency } from '../src/index'
 import { DateTime } from 'luxon'
 import { set as setMockDate, reset as resetMockDate } from 'mockdate'
-import { optionsToString } from '../src/optionstostring';
-
+debugger
 describe('RRule', function () {
-  // Enable additional toString() / fromString() tests
-  // for each testRecurring().
-  this.ctx.ALSO_TEST_STRING_FUNCTIONS = true
-
-  // Enable additional toText() / fromText() tests
-  // for each testRecurring().
-  // Many of the tests fail because the conversion is only approximate,
-  // but it gives an idea about how well or bad it converts.
-  this.ctx.ALSO_TEST_NLP_FUNCTIONS = false
-
   // Thorough after()/before()/between() tests.
   // NOTE: can take a longer time.
-  this.ctx.ALSO_TEST_BEFORE_AFTER_BETWEEN = true
+  this.ctx.ALSO_TEST_BEFORE_AFTER_BETWEEN = false
 
-  this.ctx.ALSO_TEST_SUBSECOND_PRECISION = true
-
-  it('rrulestr https://github.com/jkbrzt/rrule/pull/164', function () {
-    const s1 = 'RRULE:FREQ=WEEKLY;WKST=WE'
-    const s2 = rrulestr(s1).toString()
-    expect(s1).equals(s2, s1 + ' => ' + s2)
-  })
-  
-  it('rrulestr itteration not infinite when interval 0', function () {
-    ['FREQ=YEARLY;INTERVAL=0;BYSETPOS=1;BYDAY=MO',
-    'FREQ=MONTHLY;INTERVAL=0;BYSETPOS=1;BYDAY=MO',
-    'FREQ=DAILY;INTERVAL=0;BYSETPOS=1;BYDAY=MO',
-    'FREQ=HOURLY;INTERVAL=0;BYSETPOS=1;BYDAY=MO',
-    'FREQ=MINUTELY;INTERVAL=0;BYSETPOS=1;BYDAY=MO',
-    'FREQ=SECONDLY;INTERVAL=0;BYSETPOS=1;BYDAY=MO']
-    .map((s) => expect(rrulestr(s).count()).to.equal(0))
-  })
+  this.ctx.ALSO_TEST_SUBSECOND_PRECISION = false
 
   it('does not mutate the passed-in options object', function () {
     const options = {
-      freq: RRule.MONTHLY,
-      dtstart: new Date(2013, 0, 1),
-      count: 3,
-      bymonthday: [28]
+      eFreq: RRule.MONTHLY,
+      dtStart: new Date(2013, 0, 1),
+      diCount: 3,
+      aByMonthday: [28]
     }
     const rule = new RRule(options)
 
     expect(options).deep.equals({
-      freq: RRule.MONTHLY,
-      dtstart: new Date(2013, 0, 1),
-      count: 3,
-      bymonthday: [28]
+      eFreq: RRule.MONTHLY,
+      dtStart: new Date(2013, 0, 1),
+      diCount: 3,
+      aByMonthday: [28]
     })
     expect(rule.origOptions).deep.equals(options)
   })
 
   testRecurring('missing Feb 28 https://github.com/jakubroztocil/rrule/issues/21',
     new RRule({
-      freq: RRule.MONTHLY,
-      dtstart: new Date(Date.UTC(2013, 0, 1)),
-      count: 3,
-      bymonthday: [28]
+      eFreq: RRule.MONTHLY,
+      dtStart: new Date(Date.UTC(2013, 0, 1)),
+      diCount: 3,
+      aByMonthday: [28]
     }),
     [
       new Date(Date.UTC(2013, 0, 28)),
@@ -77,8 +50,8 @@ describe('RRule', function () {
   testRecurring('testBefore',
     {
       rrule: new RRule({
-        freq: RRule.DAILY,
-        dtstart: parse('19970902T090000')
+        eFreq: RRule.DAILY,
+        dtStart: parse('19970902T090000')
       }),
       method: 'before',
       args: [parse('19970905T090000')]
@@ -89,8 +62,8 @@ describe('RRule', function () {
   testRecurring('testBeforeInc',
     {
       rrule: new RRule({
-        freq: RRule.DAILY,
-        dtstart: parse('19970902T090000')
+        eFreq: RRule.DAILY,
+        dtStart: parse('19970902T090000')
       }),
       method: 'before',
       args: [parse('19970905T090000'), true]
@@ -101,8 +74,8 @@ describe('RRule', function () {
   testRecurring('testAfter',
     {
       rrule: new RRule({
-        freq: RRule.DAILY,
-        dtstart: parse('19970902T090000')
+        eFreq: RRule.DAILY,
+        dtStart: parse('19970902T090000')
       }),
       method: 'after',
       args: [parse('19970904T090000')]
@@ -113,8 +86,8 @@ describe('RRule', function () {
   testRecurring('testAfterInc',
     {
       rrule: new RRule({
-        freq: RRule.DAILY,
-        dtstart: parse('19970902T090000')
+        eFreq: RRule.DAILY,
+        dtStart: parse('19970902T090000')
       }),
       method: 'after',
       args: [parse('19970904T090000'), true]
@@ -125,8 +98,8 @@ describe('RRule', function () {
   testRecurring('testBetween',
     {
       rrule: new RRule({
-        freq: RRule.DAILY,
-        dtstart: parse('19970902T090000')
+        eFreq: RRule.DAILY,
+        dtStart: parse('19970902T090000')
       }),
       method: 'between',
       args: [parse('19970902T090000'), parse('19970906T090000')]
@@ -141,8 +114,8 @@ describe('RRule', function () {
   testRecurring('testBetweenInc',
     {
       rrule: new RRule({
-        freq: RRule.DAILY,
-        dtstart: parse('19970902T090000')
+        eFreq: RRule.DAILY,
+        dtStart: parse('19970902T090000')
       }),
       method: 'between',
       args: [parse('19970902T090000'), parse('19970906T090000'), true]
@@ -158,9 +131,9 @@ describe('RRule', function () {
 
   testRecurring('testYearly',
     new RRule({
-      freq: RRule.YEARLY,
-      count: 3,
-      dtstart: parse('19970902T090000')
+      eFreq: RRule.YEARLY,
+      diCount: 3,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -170,10 +143,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyInterval',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      interval: 2,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      dwInterval: 2,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -183,10 +156,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyIntervalLarge',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      interval: 100,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      dwInterval: 100,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -196,10 +169,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMonth',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bymonth: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 2, 9, 0),
@@ -209,10 +182,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMonthDay',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bymonthday: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 3, 9, 0),
@@ -222,11 +195,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMonthAndMonthDay',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [5, 7],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [5, 7],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 5, 9, 0),
@@ -236,10 +209,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByWeekDay',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -249,10 +222,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByNWeekDay',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 25, 9, 0),
@@ -262,10 +235,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByNWeekDayLarge',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byweekday: [RRule.TU.nth(13), RRule.TH.nth(-13)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU.nth(13), RRule.TH.nth(-13)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 10, 2, 9, 0),
@@ -275,11 +248,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMonthAndWeekDay',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -289,11 +262,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMonthAndNWeekDay',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 6, 9, 0),
@@ -303,11 +276,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMonthAndNWeekDayLarge',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU.nth(3), RRule.TH.nth(-3)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU.nth(3), RRule.TH.nth(-3)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 15, 9, 0),
@@ -317,11 +290,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMonthDayAndWeekDay',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -331,12 +304,12 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMonthAndMonthDayAndWeekDay',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -346,10 +319,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByYearDay',
-    new RRule({freq: RRule.YEARLY,
-      count: 4,
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 4,
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 9, 0),
@@ -360,10 +333,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByYearDayNeg',
-    new RRule({freq: RRule.YEARLY,
-      count: 4,
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 4,
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 9, 0),
@@ -374,11 +347,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMonthAndYearDay',
-    new RRule({freq: RRule.YEARLY,
-      count: 4,
-      bymonth: [4, 7],
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 4,
+      aByMonth: [4, 7],
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 4, 10, 9, 0),
@@ -389,11 +362,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMonthAndYearDayNeg',
-    new RRule({freq: RRule.YEARLY,
-      count: 4,
-      bymonth: [4, 7],
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 4,
+      aByMonth: [4, 7],
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 4, 10, 9, 0),
@@ -403,11 +376,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testYearlyByWeekNo',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byweekno: 20,
-      dtstart: parse('19970902T090000')
+  testRecurring('testYearlyaByWeekno',
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByWeekno: 20,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 5, 11, 9, 0),
@@ -416,14 +389,14 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testYearlyByWeekNoAndWeekDay',
+  testRecurring('testYearlyaByWeeknoAndWeekDay',
     // That's a nice one. The first days of week number one
     // may be in the last year.
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byweekno: 1,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByWeekno: 1,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 29, 9, 0),
@@ -432,14 +405,14 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testYearlyByWeekNoAndWeekDayLarge',
+  testRecurring('testYearlyaByWeeknoAndWeekDayLarge',
     // Another nice test. The last days of week number 52/53
     // may be in the next year.
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byweekno: 52,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByWeekno: 52,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 9, 0),
@@ -448,12 +421,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testYearlyByWeekNoAndWeekDayLast',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byweekno: -1,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+  testRecurring('testYearlyaByWeeknoAndWeekDayLast',
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByWeekno: -1,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 9, 0),
@@ -462,50 +435,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testYearlyByEaster',
-    new RRule({ count: 3,
-      byeaster: 0,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 12, 9, 0),
-      datetime(1999, 4, 4, 9, 0),
-      datetime(2000, 4, 23, 9, 0)
-    ]
-  )
-
-  testRecurring('testYearlyByEasterPos',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byeaster: 1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 13, 9, 0),
-      datetime(1999, 4, 5, 9, 0),
-      datetime(2000, 4, 24, 9, 0)
-    ]
-  )
-
-  testRecurring('testYearlyByEasterNeg',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byeaster: -1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 11, 9, 0),
-      datetime(1999, 4, 3, 9, 0),
-      datetime(2000, 4, 22, 9, 0)
-    ]
-  )
-
-  testRecurring('testYearlyByWeekNoAndWeekDay53',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byweekno: 53,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+  testRecurring('testYearlyaByWeeknoAndWeekDay53',
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByWeekno: 53,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 12, 28, 9, 0),
@@ -515,10 +450,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByHour',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byhour: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByHour: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 0),
@@ -528,10 +463,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testYearlyByMinute',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 6),
@@ -540,25 +475,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testYearlyBySecond',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 0, 6),
-      datetime(1997, 9, 2, 9, 0, 18),
-      datetime(1998, 9, 2, 9, 0, 6)
-    ]
-  )
-
   testRecurring('testYearlyByHourAndMinute',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByHour: [6, 18],
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 6),
@@ -567,56 +489,13 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testYearlyByHourAndSecond',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byhour: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 0, 6),
-      datetime(1997, 9, 2, 18, 0, 18),
-      datetime(1998, 9, 2, 6, 0, 6)
-    ]
-  )
-
-  testRecurring('testYearlyByMinuteAndSecond',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 6, 6),
-      datetime(1997, 9, 2, 9, 6, 18),
-      datetime(1997, 9, 2, 9, 18, 6)
-    ]
-  )
-
-  testRecurring('testYearlyByHourAndMinuteAndSecond',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 6, 6),
-      datetime(1997, 9, 2, 18, 6, 18),
-      datetime(1997, 9, 2, 18, 18, 6)
-    ]
-  )
-
   testRecurring('testYearlyBySetPos',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bymonthday: 15,
-      byhour: [6, 18],
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMonthday: 15,
+      aByHour: [6, 18],
       bysetpos: [3, -3],
-      dtstart: parse('19970902T090000')
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 11, 15, 18, 0),
@@ -628,8 +507,8 @@ describe('RRule', function () {
   testRecurring('testYearlyBetweenInc',
     {
       rrule: new RRule({
-        freq: RRule.YEARLY,
-        dtstart: parse('20150101T000000')
+        eFreq: RRule.YEARLY,
+        dtStart: parse('20150101T000000')
       }),
       method: 'between',
       args: [parse('20160101T000000'), parse('20160101T000000'), true]
@@ -642,8 +521,8 @@ describe('RRule', function () {
   testRecurring('testYearlyBetweenIncLargeSpan',
     {
       rrule: new RRule({
-        freq: RRule.YEARLY,
-        dtstart: parse('19200101T000000') // Error because date lower than dateutil.ORDINAL_BASE
+        eFreq: RRule.YEARLY,
+        dtStart: parse('19200101T000000') // Error because date lower than dateutil.ORDINAL_BASE
       }),
       method: 'between',
       args: [parse('20160101T000000'), parse('20160101T000000'), true]
@@ -654,9 +533,9 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthly',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -666,10 +545,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyInterval',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      interval: 2,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      dwInterval: 2,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -679,10 +558,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyIntervalLarge',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      interval: 18,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      dwInterval: 18,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -692,10 +571,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMonth',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      bymonth: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 2, 9, 0),
@@ -705,10 +584,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMonthDay',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      bymonthday: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 3, 9, 0),
@@ -718,11 +597,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMonthAndMonthDay',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [5, 7],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [5, 7],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 5, 9, 0),
@@ -732,10 +611,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByWeekDay',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -745,10 +624,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByNWeekDay',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -758,10 +637,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByNWeekDayLarge',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byweekday: [RRule.TU.nth(3), RRule.TH.nth(-3)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU.nth(3), RRule.TH.nth(-3)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 11, 9, 0),
@@ -771,11 +650,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMonthAndWeekDay',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -785,11 +664,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMonthAndNWeekDay',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 6, 9, 0),
@@ -799,11 +678,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMonthAndNWeekDayLarge',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU.nth(3), RRule.TH.nth(-3)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU.nth(3), RRule.TH.nth(-3)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 15, 9, 0),
@@ -813,11 +692,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMonthDayAndWeekDay',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -827,12 +706,12 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMonthAndMonthDayAndWeekDay',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -842,10 +721,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByYearDay',
-    new RRule({freq: RRule.MONTHLY,
-      count: 4,
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 4,
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 9, 0),
@@ -856,10 +735,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByYearDayNeg',
-    new RRule({freq: RRule.MONTHLY,
-      count: 4,
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 4,
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 9, 0),
@@ -870,11 +749,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMonthAndYearDay',
-    new RRule({freq: RRule.MONTHLY,
-      count: 4,
-      bymonth: [4, 7],
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 4,
+      aByMonth: [4, 7],
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 4, 10, 9, 0),
@@ -885,11 +764,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMonthAndYearDayNeg',
-    new RRule({freq: RRule.MONTHLY,
-      count: 4,
-      bymonth: [4, 7],
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 4,
+      aByMonth: [4, 7],
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 4, 10, 9, 0),
@@ -899,11 +778,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMonthlyByWeekNo',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byweekno: 20,
-      dtstart: parse('19970902T090000')
+  testRecurring('testMonthlyaByWeekno',
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByWeekno: 20,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 5, 11, 9, 0),
@@ -912,14 +791,14 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMonthlyByWeekNoAndWeekDay',
+  testRecurring('testMonthlyaByWeeknoAndWeekDay',
     // That's a nice one. The first days of week number one
     // may be in the last year.
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byweekno: 1,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByWeekno: 1,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 29, 9, 0),
@@ -928,14 +807,14 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMonthlyByWeekNoAndWeekDayLarge',
+  testRecurring('testMonthlyaByWeeknoAndWeekDayLarge',
     // Another nice test. The last days of week number 52/53
     // may be in the next year.
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byweekno: 52,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByWeekno: 52,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 9, 0),
@@ -944,12 +823,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMonthlyByWeekNoAndWeekDayLast',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byweekno: -1,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+  testRecurring('testMonthlyaByWeeknoAndWeekDayLast',
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByWeekno: -1,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 9, 0),
@@ -958,12 +837,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMonthlyByWeekNoAndWeekDay53',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byweekno: 53,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+  testRecurring('testMonthlyaByWeeknoAndWeekDay53',
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByWeekno: 53,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 12, 28, 9, 0),
@@ -972,50 +851,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMonthlyByEaster',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byeaster: 0,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 12, 9, 0),
-      datetime(1999, 4, 4, 9, 0),
-      datetime(2000, 4, 23, 9, 0)
-    ]
-  )
-
-  testRecurring('testMonthlyByEasterPos',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byeaster: 1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 13, 9, 0),
-      datetime(1999, 4, 5, 9, 0),
-      datetime(2000, 4, 24, 9, 0)
-    ]
-  )
-
-  testRecurring('testMonthlyByEasterNeg',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byeaster: -1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 11, 9, 0),
-      datetime(1999, 4, 3, 9, 0),
-      datetime(2000, 4, 22, 9, 0)
-    ]
-  )
-
   testRecurring('testMonthlyByHour',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byhour: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByHour: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 0),
@@ -1025,10 +865,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyByMinute',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 6),
@@ -1037,25 +877,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMonthlyBySecond',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 0, 6),
-      datetime(1997, 9, 2, 9, 0, 18),
-      datetime(1997, 10, 2, 9, 0, 6)
-    ]
-  )
-
   testRecurring('testMonthlyByHourAndMinute',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByHour: [6, 18],
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 6),
@@ -1064,56 +891,13 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMonthlyByHourAndSecond',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byhour: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 0, 6),
-      datetime(1997, 9, 2, 18, 0, 18),
-      datetime(1997, 10, 2, 6, 0, 6)
-    ]
-  )
-
-  testRecurring('testMonthlyByMinuteAndSecond',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 6, 6),
-      datetime(1997, 9, 2, 9, 6, 18),
-      datetime(1997, 9, 2, 9, 18, 6)
-    ]
-  )
-
-  testRecurring('testMonthlyByHourAndMinuteAndSecond',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 6, 6),
-      datetime(1997, 9, 2, 18, 6, 18),
-      datetime(1997, 9, 2, 18, 18, 6)
-    ]
-  )
-
   testRecurring('testMonthlyBySetPos',
-    new RRule({freq: RRule.MONTHLY,
-      count: 3,
-      bymonthday: [13, 17],
-      byhour: [6, 18],
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 3,
+      aByMonthday: [13, 17],
+      aByHour: [6, 18],
       bysetpos: [3, -3],
-      dtstart: parse('19970902T090000')
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 13, 18, 0),
@@ -1123,10 +907,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyNegByMonthDayJanFebForNonLeapYear',
-    new RRule({freq: RRule.MONTHLY,
-      count: 4,
-      bymonthday: -1,
-      dtstart: parse('20131201T0900000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 4,
+      aByMonthday: -1,
+      dtStart: parse('20131201T0900000')
     }),
     [
       datetime(2013, 12, 31, 9, 0),
@@ -1137,10 +921,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMonthlyNegByMonthDayJanFebForLeapYear',
-    new RRule({freq: RRule.MONTHLY,
-      count: 4,
-      bymonthday: -1,
-      dtstart: parse('20151201T0900000')
+    new RRule({eFreq: RRule.MONTHLY,
+      diCount: 4,
+      aByMonthday: -1,
+      dtStart: parse('20151201T0900000')
     }),
     [
       datetime(2015, 12, 31, 9, 0),
@@ -1151,9 +935,9 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeekly',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -1163,10 +947,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyInterval',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      interval: 2,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      dwInterval: 2,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -1176,10 +960,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyIntervalLarge',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      interval: 20,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      dwInterval: 20,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -1189,10 +973,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByMonth',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      bymonth: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 6, 9, 0),
@@ -1202,10 +986,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByMonthDay',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      bymonthday: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 3, 9, 0),
@@ -1215,11 +999,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByMonthAndMonthDay',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [5, 7],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [5, 7],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 5, 9, 0),
@@ -1229,10 +1013,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByWeekDay',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -1242,10 +1026,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByNWeekDay',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -1258,11 +1042,11 @@ describe('RRule', function () {
     // This test is interesting, because it crosses the year
     // boundary in a weekly period to find day '1' as a
     // valid recurrence.
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1272,11 +1056,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByMonthAndNWeekDay',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1286,11 +1070,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByMonthDayAndWeekDay',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1300,12 +1084,12 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByMonthAndMonthDayAndWeekDay',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1315,10 +1099,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByYearDay',
-    new RRule({freq: RRule.WEEKLY,
-      count: 4,
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 4,
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 9, 0),
@@ -1329,10 +1113,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByYearDayNeg',
-    new RRule({freq: RRule.WEEKLY,
-      count: 4,
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 4,
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 9, 0),
@@ -1343,11 +1127,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByMonthAndYearDay',
-    new RRule({freq: RRule.WEEKLY,
-      count: 4,
-      bymonth: [1, 7],
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 4,
+      aByMonth: [1, 7],
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1358,11 +1142,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByMonthAndYearDayNeg',
-    new RRule({freq: RRule.WEEKLY,
-      count: 4,
-      bymonth: [1, 7],
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 4,
+      aByMonth: [1, 7],
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1372,11 +1156,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testWeeklyByWeekNo',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byweekno: 20,
-      dtstart: parse('19970902T090000')
+  testRecurring('testWeeklyaByWeekno',
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByWeekno: 20,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 5, 11, 9, 0),
@@ -1385,14 +1169,14 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testWeeklyByWeekNoAndWeekDay',
+  testRecurring('testWeeklyaByWeeknoAndWeekDay',
     // That's a nice one. The first days of week number one
     // may be in the last year.
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byweekno: 1,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByWeekno: 1,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 29, 9, 0),
@@ -1401,14 +1185,14 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testWeeklyByWeekNoAndWeekDayLarge',
+  testRecurring('testWeeklyaByWeeknoAndWeekDayLarge',
     // Another nice test. The last days of week number 52/53
     // may be in the next year.
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byweekno: 52,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByWeekno: 52,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 9, 0),
@@ -1417,12 +1201,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testWeeklyByWeekNoAndWeekDayLast',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byweekno: -1,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+  testRecurring('testWeeklyaByWeeknoAndWeekDayLast',
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByWeekno: -1,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 9, 0),
@@ -1431,12 +1215,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testWeeklyByWeekNoAndWeekDay53',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byweekno: 53,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+  testRecurring('testWeeklyaByWeeknoAndWeekDay53',
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByWeekno: 53,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 12, 28, 9, 0),
@@ -1445,50 +1229,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testWeeklyByEaster',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byeaster: 0,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 12, 9, 0),
-      datetime(1999, 4, 4, 9, 0),
-      datetime(2000, 4, 23, 9, 0)
-    ]
-  )
-
-  testRecurring('testWeeklyByEasterPos',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byeaster: 1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 13, 9, 0),
-      datetime(1999, 4, 5, 9, 0),
-      datetime(2000, 4, 24, 9, 0)
-    ]
-  )
-
-  testRecurring('testWeeklyByEasterNeg',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byeaster: -1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 11, 9, 0),
-      datetime(1999, 4, 3, 9, 0),
-      datetime(2000, 4, 22, 9, 0)
-    ]
-  )
-
   testRecurring('testWeeklyByHour',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byhour: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByHour: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 0),
@@ -1498,10 +1243,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testWeeklyByMinute',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 6),
@@ -1510,25 +1255,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testWeeklyBySecond',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 0, 6),
-      datetime(1997, 9, 2, 9, 0, 18),
-      datetime(1997, 9, 9, 9, 0, 6)
-    ]
-  )
-
   testRecurring('testWeeklyByHourAndMinute',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByHour: [6, 18],
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 6),
@@ -1537,56 +1269,13 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testWeeklyByHourAndSecond',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byhour: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 0, 6),
-      datetime(1997, 9, 2, 18, 0, 18),
-      datetime(1997, 9, 9, 6, 0, 6)
-    ]
-  )
-
-  testRecurring('testWeeklyByMinuteAndSecond',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 6, 6),
-      datetime(1997, 9, 2, 9, 6, 18),
-      datetime(1997, 9, 2, 9, 18, 6)
-    ]
-  )
-
-  testRecurring('testWeeklyByHourAndMinuteAndSecond',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 6, 6),
-      datetime(1997, 9, 2, 18, 6, 18),
-      datetime(1997, 9, 2, 18, 18, 6)
-    ]
-  )
-
   testRecurring('testWeeklyBySetPos',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      byweekday: [RRule.TU, RRule.TH],
-      byhour: [6, 18],
+    new RRule({eFreq: RRule.WEEKLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU, RRule.TH],
+      aByHour: [6, 18],
       bysetpos: [3, -3],
-      dtstart: parse('19970902T090000')
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 0),
@@ -1596,9 +1285,9 @@ describe('RRule', function () {
   )
 
   testRecurring('testDaily',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -1608,10 +1297,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyInterval',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      interval: 2,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      dwInterval: 2,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -1621,10 +1310,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyIntervalLarge',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      interval: 92,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      dwInterval: 92,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -1634,10 +1323,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByMonth',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      bymonth: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1647,10 +1336,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByMonthDay',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      bymonthday: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 3, 9, 0),
@@ -1660,11 +1349,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByMonthAndMonthDay',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [5, 7],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [5, 7],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 5, 9, 0),
@@ -1674,10 +1363,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByWeekDay',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -1687,10 +1376,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByNWeekDay',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -1700,11 +1389,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByMonthAndWeekDay',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1714,11 +1403,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByMonthAndNWeekDay',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1728,11 +1417,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByMonthDayAndWeekDay',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1742,12 +1431,12 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByMonthAndMonthDayAndWeekDay',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1757,10 +1446,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByYearDay',
-    new RRule({freq: RRule.DAILY,
-      count: 4,
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 4,
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 9, 0),
@@ -1771,10 +1460,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByYearDayNeg',
-    new RRule({freq: RRule.DAILY,
-      count: 4,
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 4,
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 9, 0),
@@ -1785,11 +1474,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByMonthAndYearDay',
-    new RRule({freq: RRule.DAILY,
-      count: 4,
-      bymonth: [1, 7],
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 4,
+      aByMonth: [1, 7],
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1800,11 +1489,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByMonthAndYearDayNeg',
-    new RRule({freq: RRule.DAILY,
-      count: 4,
-      bymonth: [1, 7],
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 4,
+      aByMonth: [1, 7],
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 9, 0),
@@ -1814,11 +1503,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testDailyByWeekNo',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byweekno: 20,
-      dtstart: parse('19970902T090000')
+  testRecurring('testDailyaByWeekno',
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByWeekno: 20,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 5, 11, 9, 0),
@@ -1827,14 +1516,14 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testDailyByWeekNoAndWeekDay',
+  testRecurring('testDailyaByWeeknoAndWeekDay',
     // That's a nice one. The first days of week number one
     // may be in the last year.
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byweekno: 1,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByWeekno: 1,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 29, 9, 0),
@@ -1843,14 +1532,14 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testDailyByWeekNoAndWeekDayLarge',
+  testRecurring('testDailyaByWeeknoAndWeekDayLarge',
     // Another nice test. The last days of week number 52/53
     // may be in the next year.
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byweekno: 52,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByWeekno: 52,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 9, 0),
@@ -1859,12 +1548,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testDailyByWeekNoAndWeekDayLast',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byweekno: -1,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+  testRecurring('testDailyaByWeeknoAndWeekDayLast',
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByWeekno: -1,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 9, 0),
@@ -1873,12 +1562,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testDailyByWeekNoAndWeekDay53',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byweekno: 53,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+  testRecurring('testDailyaByWeeknoAndWeekDay53',
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByWeekno: 53,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 12, 28, 9, 0),
@@ -1887,50 +1576,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testDailyByEaster',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byeaster: 0,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 12, 9, 0),
-      datetime(1999, 4, 4, 9, 0),
-      datetime(2000, 4, 23, 9, 0)
-    ]
-  )
-
-  testRecurring('testDailyByEasterPos',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byeaster: 1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 13, 9, 0),
-      datetime(1999, 4, 5, 9, 0),
-      datetime(2000, 4, 24, 9, 0)
-    ]
-  )
-
-  testRecurring('testDailyByEasterNeg',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byeaster: -1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 11, 9, 0),
-      datetime(1999, 4, 3, 9, 0),
-      datetime(2000, 4, 22, 9, 0)
-    ]
-  )
-
   testRecurring('testDailyByHour',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byhour: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByHour: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 0),
@@ -1940,10 +1590,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testDailyByMinute',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 6),
@@ -1952,25 +1602,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testDailyBySecond',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 0, 6),
-      datetime(1997, 9, 2, 9, 0, 18),
-      datetime(1997, 9, 3, 9, 0, 6)
-    ]
-  )
-
   testRecurring('testDailyByHourAndMinute',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByHour: [6, 18],
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 6),
@@ -1979,56 +1616,13 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testDailyByHourAndSecond',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byhour: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 0, 6),
-      datetime(1997, 9, 2, 18, 0, 18),
-      datetime(1997, 9, 3, 6, 0, 6)
-    ]
-  )
-
-  testRecurring('testDailyByMinuteAndSecond',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 6, 6),
-      datetime(1997, 9, 2, 9, 6, 18),
-      datetime(1997, 9, 2, 9, 18, 6)
-    ]
-  )
-
-  testRecurring('testDailyByHourAndMinuteAndSecond',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 6, 6),
-      datetime(1997, 9, 2, 18, 6, 18),
-      datetime(1997, 9, 2, 18, 18, 6)
-    ]
-  )
-
   testRecurring('testDailyBySetPos',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [15, 45],
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      aByHour: [6, 18],
+      aByMinute: [15, 45],
       bysetpos: [3, -3],
-      dtstart: parse('19970902T090000')
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 15),
@@ -2038,9 +1632,9 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourly',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -2050,10 +1644,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyInterval',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      interval: 2,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      dwInterval: 2,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -2063,10 +1657,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyIntervalLarge',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      interval: 769,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      dwInterval: 769,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -2076,10 +1670,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByMonth',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      bymonth: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0),
@@ -2089,10 +1683,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByMonthDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      bymonthday: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 3, 0, 0),
@@ -2102,11 +1696,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByMonthAndMonthDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [5, 7],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [5, 7],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 5, 0, 0),
@@ -2116,10 +1710,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByWeekDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -2129,10 +1723,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByNWeekDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -2142,11 +1736,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByMonthAndWeekDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0),
@@ -2156,11 +1750,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByMonthAndNWeekDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0),
@@ -2170,11 +1764,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByMonthDayAndWeekDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0),
@@ -2184,12 +1778,12 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByMonthAndMonthDayAndWeekDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0),
@@ -2199,10 +1793,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByYearDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 4,
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 4,
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 0, 0),
@@ -2213,10 +1807,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByYearDayNeg',
-    new RRule({freq: RRule.HOURLY,
-      count: 4,
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 4,
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 0, 0),
@@ -2227,11 +1821,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByMonthAndYearDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 4,
-      bymonth: [4, 7],
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 4,
+      aByMonth: [4, 7],
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 4, 10, 0, 0),
@@ -2242,11 +1836,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByMonthAndYearDayNeg',
-    new RRule({freq: RRule.HOURLY,
-      count: 4,
-      bymonth: [4, 7],
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 4,
+      aByMonth: [4, 7],
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 4, 10, 0, 0),
@@ -2256,11 +1850,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testHourlyByWeekNo',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byweekno: 20,
-      dtstart: parse('19970902T090000')
+  testRecurring('testHourlyaByWeekno',
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByWeekno: 20,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 5, 11, 0, 0),
@@ -2269,12 +1863,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testHourlyByWeekNoAndWeekDay',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byweekno: 1,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+  testRecurring('testHourlyaByWeeknoAndWeekDay',
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByWeekno: 1,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 29, 0, 0),
@@ -2283,12 +1877,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testHourlyByWeekNoAndWeekDayLarge',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byweekno: 52,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+  testRecurring('testHourlyaByWeeknoAndWeekDayLarge',
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByWeekno: 52,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 0, 0),
@@ -2297,12 +1891,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testHourlyByWeekNoAndWeekDayLast',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byweekno: -1,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+  testRecurring('testHourlyaByWeeknoAndWeekDayLast',
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByWeekno: -1,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 0, 0),
@@ -2311,12 +1905,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testHourlyByWeekNoAndWeekDay53',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byweekno: 53,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+  testRecurring('testHourlyaByWeeknoAndWeekDay53',
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByWeekno: 53,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 12, 28, 0, 0),
@@ -2325,50 +1919,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring.skip('testHourlyByEaster',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byeaster: 0,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 12, 0, 0),
-      datetime(1998, 4, 12, 1, 0),
-      datetime(1998, 4, 12, 2, 0)
-    ]
-  )
-
-  testRecurring.skip('testHourlyByEasterPos',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byeaster: 1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 13, 0, 0),
-      datetime(1998, 4, 13, 1, 0),
-      datetime(1998, 4, 13, 2, 0)
-    ]
-  )
-
-  testRecurring.skip('testHourlyByEasterNeg',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byeaster: -1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 11, 0, 0),
-      datetime(1998, 4, 11, 1, 0),
-      datetime(1998, 4, 11, 2, 0)
-    ]
-  )
-
   testRecurring('testHourlyByHour',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byhour: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByHour: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 0),
@@ -2378,10 +1933,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testHourlyByMinute',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 6),
@@ -2390,25 +1945,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testHourlyBySecond',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 0, 6),
-      datetime(1997, 9, 2, 9, 0, 18),
-      datetime(1997, 9, 2, 10, 0, 6)
-    ]
-  )
-
   testRecurring('testHourlyByHourAndMinute',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.HOURLY,
+      diCount: 3,
+      aByHour: [6, 18],
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 6),
@@ -2417,68 +1959,10 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testHourlyByHourAndSecond',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byhour: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 0, 6),
-      datetime(1997, 9, 2, 18, 0, 18),
-      datetime(1997, 9, 3, 6, 0, 6)
-    ]
-  )
-
-  testRecurring('testHourlyByMinuteAndSecond',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 6, 6),
-      datetime(1997, 9, 2, 9, 6, 18),
-      datetime(1997, 9, 2, 9, 18, 6)
-    ]
-  )
-
-  testRecurring('testHourlyByHourAndMinuteAndSecond',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 6, 6),
-      datetime(1997, 9, 2, 18, 6, 18),
-      datetime(1997, 9, 2, 18, 18, 6)
-    ]
-  )
-
-  testRecurring('testHourlyBySetPos',
-    new RRule({freq: RRule.HOURLY,
-      count: 3,
-      byminute: [15, 45],
-      bysecond: [15, 45],
-      bysetpos: [3, -3],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 15, 45),
-      datetime(1997, 9, 2, 9, 45, 15),
-      datetime(1997, 9, 2, 10, 15, 45)
-    ]
-  )
-
   testRecurring('testMinutely',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -2488,10 +1972,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyInterval',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      interval: 2,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      dwInterval: 2,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -2501,10 +1985,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyIntervalLarge',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      interval: 1501,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      dwInterval: 1501,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -2514,10 +1998,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByMonth',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      bymonth: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0),
@@ -2527,10 +2011,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByMonthDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      bymonthday: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 3, 0, 0),
@@ -2540,11 +2024,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByMonthAndMonthDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [5, 7],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [5, 7],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 5, 0, 0),
@@ -2554,10 +2038,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByWeekDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -2567,10 +2051,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByNWeekDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -2580,11 +2064,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByMonthAndWeekDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0),
@@ -2594,11 +2078,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByMonthAndNWeekDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0),
@@ -2608,11 +2092,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByMonthDayAndWeekDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0),
@@ -2622,12 +2106,12 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByMonthAndMonthDayAndWeekDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0),
@@ -2637,10 +2121,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByYearDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 4,
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 4,
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 0, 0),
@@ -2651,10 +2135,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByYearDayNeg',
-    new RRule({freq: RRule.MINUTELY,
-      count: 4,
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 4,
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 0, 0),
@@ -2665,11 +2149,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByMonthAndYearDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 4,
-      bymonth: [4, 7],
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 4,
+      aByMonth: [4, 7],
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 4, 10, 0, 0),
@@ -2680,11 +2164,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByMonthAndYearDayNeg',
-    new RRule({freq: RRule.MINUTELY,
-      count: 4,
-      bymonth: [4, 7],
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 4,
+      aByMonth: [4, 7],
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 4, 10, 0, 0),
@@ -2694,11 +2178,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMinutelyByWeekNo',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byweekno: 20,
-      dtstart: parse('19970902T090000')
+  testRecurring('testMinutelyaByWeekno',
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByWeekno: 20,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 5, 11, 0, 0),
@@ -2707,12 +2191,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMinutelyByWeekNoAndWeekDay',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byweekno: 1,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+  testRecurring('testMinutelyaByWeeknoAndWeekDay',
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByWeekno: 1,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 29, 0, 0),
@@ -2721,12 +2205,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMinutelyByWeekNoAndWeekDayLarge',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byweekno: 52,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+  testRecurring('testMinutelyaByWeeknoAndWeekDayLarge',
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByWeekno: 52,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 0, 0),
@@ -2735,12 +2219,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMinutelyByWeekNoAndWeekDayLast',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byweekno: -1,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+  testRecurring('testMinutelyaByWeeknoAndWeekDayLast',
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByWeekno: -1,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 0, 0),
@@ -2749,12 +2233,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMinutelyByWeekNoAndWeekDay53',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byweekno: 53,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+  testRecurring('testMinutelyaByWeeknoAndWeekDay53',
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByWeekno: 53,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 12, 28, 0, 0),
@@ -2763,50 +2247,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring.skip('testMinutelyByEaster',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byeaster: 0,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 12, 0, 0),
-      datetime(1998, 4, 12, 0, 1),
-      datetime(1998, 4, 12, 0, 2)
-    ]
-  )
-
-  testRecurring.skip('testMinutelyByEasterPos',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byeaster: 1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 13, 0, 0),
-      datetime(1998, 4, 13, 0, 1),
-      datetime(1998, 4, 13, 0, 2)
-    ]
-  )
-
-  testRecurring.skip('testMinutelyByEasterNeg',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byeaster: -1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 11, 0, 0),
-      datetime(1998, 4, 11, 0, 1),
-      datetime(1998, 4, 11, 0, 2)
-    ]
-  )
-
   testRecurring('testMinutelyByHour',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byhour: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByHour: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 0),
@@ -2816,10 +2261,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testMinutelyByMinute',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 6),
@@ -2828,25 +2273,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMinutelyBySecond',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 0, 6),
-      datetime(1997, 9, 2, 9, 0, 18),
-      datetime(1997, 9, 2, 9, 1, 6)
-    ]
-  )
-
   testRecurring('testMinutelyByHourAndMinute',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.MINUTELY,
+      diCount: 3,
+      aByHour: [6, 18],
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 6),
@@ -2855,67 +2287,10 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testMinutelyByHourAndSecond',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byhour: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 0, 6),
-      datetime(1997, 9, 2, 18, 0, 18),
-      datetime(1997, 9, 2, 18, 1, 6)
-    ]
-  )
-
-  testRecurring('testMinutelyByMinuteAndSecond',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 6, 6),
-      datetime(1997, 9, 2, 9, 6, 18),
-      datetime(1997, 9, 2, 9, 18, 6)
-    ]
-  )
-
-  testRecurring('testMinutelyByHourAndMinuteAndSecond',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 6, 6),
-      datetime(1997, 9, 2, 18, 6, 18),
-      datetime(1997, 9, 2, 18, 18, 6)
-    ]
-  )
-
-  testRecurring('testMinutelyBySetPos',
-    new RRule({freq: RRule.MINUTELY,
-      count: 3,
-      bysecond: [15, 30, 45],
-      bysetpos: [3, -3],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 0, 15),
-      datetime(1997, 9, 2, 9, 0, 45),
-      datetime(1997, 9, 2, 9, 1, 15)
-    ]
-  )
-
   testRecurring('testSecondly',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0, 0),
@@ -2925,10 +2300,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyInterval',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      interval: 2,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      dwInterval: 2,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0, 0),
@@ -2938,10 +2313,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyIntervalLarge',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      interval: 90061,
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      dwInterval: 90061,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0, 0),
@@ -2951,10 +2326,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByMonth',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      bymonth: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0, 0),
@@ -2964,10 +2339,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByMonthDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      bymonthday: [1, 3],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 3, 0, 0, 0),
@@ -2977,11 +2352,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByMonthAndMonthDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [5, 7],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [5, 7],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 5, 0, 0, 0),
@@ -2991,10 +2366,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByWeekDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0, 0),
@@ -3004,10 +2379,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByNWeekDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0, 0),
@@ -3017,11 +2392,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByMonthAndWeekDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0, 0),
@@ -3031,11 +2406,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByMonthAndNWeekDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      bymonth: [1, 3],
-      byweekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByWeekday: [RRule.TU.nth(1), RRule.TH.nth(-1)],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0, 0),
@@ -3045,11 +2420,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByMonthDayAndWeekDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0, 0),
@@ -3059,12 +2434,12 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByMonthAndMonthDayAndWeekDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      bymonth: [1, 3],
-      bymonthday: [1, 3],
-      byweekday: [RRule.TU, RRule.TH],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByMonth: [1, 3],
+      aByMonthday: [1, 3],
+      aByWeekday: [RRule.TU, RRule.TH],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 1, 1, 0, 0, 0),
@@ -3074,10 +2449,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByYearDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 4,
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 4,
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 0, 0, 0),
@@ -3088,10 +2463,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByYearDayNeg',
-    new RRule({freq: RRule.SECONDLY,
-      count: 4,
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 4,
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 31, 0, 0, 0),
@@ -3102,11 +2477,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByMonthAndYearDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 4,
-      bymonth: [4, 7],
-      byyearday: [1, 100, 200, 365],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 4,
+      aByMonth: [4, 7],
+      aByYearday: [1, 100, 200, 365],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 4, 10, 0, 0, 0),
@@ -3117,11 +2492,11 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByMonthAndYearDayNeg',
-    new RRule({freq: RRule.SECONDLY,
-      count: 4,
-      bymonth: [4, 7],
-      byyearday: [-365, -266, -166, -1],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 4,
+      aByMonth: [4, 7],
+      aByYearday: [-365, -266, -166, -1],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 4, 10, 0, 0, 0),
@@ -3131,11 +2506,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testSecondlyByWeekNo',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byweekno: 20,
-      dtstart: parse('19970902T090000')
+  testRecurring('testSecondlyaByWeekno',
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByWeekno: 20,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 5, 11, 0, 0, 0),
@@ -3144,12 +2519,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testSecondlyByWeekNoAndWeekDay',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byweekno: 1,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+  testRecurring('testSecondlyaByWeeknoAndWeekDay',
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByWeekno: 1,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 29, 0, 0, 0),
@@ -3158,12 +2533,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testSecondlyByWeekNoAndWeekDayLarge',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byweekno: 52,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+  testRecurring('testSecondlyaByWeeknoAndWeekDayLarge',
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByWeekno: 52,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 0, 0, 0),
@@ -3172,12 +2547,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testSecondlyByWeekNoAndWeekDayLast',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byweekno: -1,
-      byweekday: RRule.SU,
-      dtstart: parse('19970902T090000')
+  testRecurring('testSecondlyaByWeeknoAndWeekDayLast',
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByWeekno: -1,
+      aByWeekday: RRule.SU,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 12, 28, 0, 0, 0),
@@ -3186,12 +2561,12 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testSecondlyByWeekNoAndWeekDay53',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byweekno: 53,
-      byweekday: RRule.MO,
-      dtstart: parse('19970902T090000')
+  testRecurring('testSecondlyaByWeeknoAndWeekDay53',
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByWeekno: 53,
+      aByWeekday: RRule.MO,
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1998, 12, 28, 0, 0, 0),
@@ -3200,50 +2575,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring.skip('testSecondlyByEaster',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byeaster: 0,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 12, 0, 0, 0),
-      datetime(1998, 4, 12, 0, 0, 1),
-      datetime(1998, 4, 12, 0, 0, 2)
-    ]
-  )
-
-  testRecurring.skip('testSecondlyByEasterPos',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byeaster: 1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 13, 0, 0, 0),
-      datetime(1998, 4, 13, 0, 0, 1),
-      datetime(1998, 4, 13, 0, 0, 2)
-    ]
-  )
-
-  testRecurring.skip('testSecondlyByEasterNeg',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byeaster: -1,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1998, 4, 11, 0, 0, 0),
-      datetime(1998, 4, 11, 0, 0, 1),
-      datetime(1998, 4, 11, 0, 0, 2)
-    ]
-  )
-
   testRecurring('testSecondlyByHour',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byhour: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByHour: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 18, 0, 0),
@@ -3253,10 +2589,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testSecondlyByMinute',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
+    new RRule({eFreq: RRule.SECONDLY,
+      diCount: 3,
+      aByMinute: [6, 18],
+      dtStart: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 6, 0),
@@ -3265,81 +2601,11 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testSecondlyBySecond',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 0, 6),
-      datetime(1997, 9, 2, 9, 0, 18),
-      datetime(1997, 9, 2, 9, 1, 6)
-    ]
-  )
-
-  testRecurring('testSecondlyByHourAndMinute',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 6, 0),
-      datetime(1997, 9, 2, 18, 6, 1),
-      datetime(1997, 9, 2, 18, 6, 2)
-    ]
-  )
-
-  testRecurring('testSecondlyByHourAndSecond',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byhour: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 0, 6),
-      datetime(1997, 9, 2, 18, 0, 18),
-      datetime(1997, 9, 2, 18, 1, 6)
-    ]
-  )
-
-  testRecurring('testSecondlyByMinuteAndSecond',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 6, 6),
-      datetime(1997, 9, 2, 9, 6, 18),
-      datetime(1997, 9, 2, 9, 18, 6)
-    ]
-  )
-
-  testRecurring('testSecondlyByHourAndMinuteAndSecond',
-    new RRule({freq: RRule.SECONDLY,
-      count: 3,
-      byhour: [6, 18],
-      byminute: [6, 18],
-      bysecond: [6, 18],
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 18, 6, 6),
-      datetime(1997, 9, 2, 18, 6, 18),
-      datetime(1997, 9, 2, 18, 18, 6)
-    ]
-  )
-
   testRecurring('testUntilNotMatching',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      dtstart: parse('19970902T090000'),
-      until: parse('19970905T080000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      dtStart: parse('19970902T090000'),
+      dtUntil: parse('19970905T080000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -3349,10 +2615,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testUntilMatching',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      dtstart: parse('19970902T090000'),
-      until: parse('19970904T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      dtStart: parse('19970902T090000'),
+      dtUntil: parse('19970904T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -3362,10 +2628,10 @@ describe('RRule', function () {
   )
 
   testRecurring('testUntilSingle',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      dtstart: parse('19970902T090000'),
-      until: parse('19970902T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      dtStart: parse('19970902T090000'),
+      dtUntil: parse('19970902T090000')
     }),
     [
       datetime(1997, 9, 2, 9, 0)
@@ -3373,19 +2639,19 @@ describe('RRule', function () {
   )
 
   testRecurring('testUntilEmpty',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      dtstart: parse('19970902T090000'),
-      until: parse('19970901T090000')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      dtStart: parse('19970902T090000'),
+      dtUntil: parse('19970901T090000')
     }),
     []
   )
 
   testRecurring('testUntilWithDate',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      dtstart: parse('19970902T090000'),
-      until: datetime(1997, 9, 5)
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      dtStart: parse('19970902T090000'),
+      dtUntil: datetime(1997, 9, 5)
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -3394,40 +2660,10 @@ describe('RRule', function () {
     ]
   )
 
-  testRecurring('testWkStIntervalMO',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      interval: 2,
-      byweekday: [RRule.TU, RRule.SU],
-      wkst: RRule.MO,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 0),
-      datetime(1997, 9, 7, 9, 0),
-      datetime(1997, 9, 16, 9, 0)
-    ]
-  )
-
-  testRecurring('testWkStIntervalSU',
-    new RRule({freq: RRule.WEEKLY,
-      count: 3,
-      interval: 2,
-      byweekday: [RRule.TU, RRule.SU],
-      wkst: RRule.SU,
-      dtstart: parse('19970902T090000')
-    }),
-    [
-      datetime(1997, 9, 2, 9, 0),
-      datetime(1997, 9, 14, 9, 0),
-      datetime(1997, 9, 16, 9, 0)
-    ]
-  )
-
   testRecurring('testDTStartIsDate',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      dtstart: datetime(1997, 9, 2)
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      dtStart: datetime(1997, 9, 2)
     }),
     [
       datetime(1997, 9, 2, 0, 0),
@@ -3437,9 +2673,9 @@ describe('RRule', function () {
   )
 
   testRecurring('testDTStartWithMicroseconds',
-    new RRule({freq: RRule.DAILY,
-      count: 3,
-      dtstart: parse('19970902T090000.5')
+    new RRule({eFreq: RRule.DAILY,
+      diCount: 3,
+      dtStart: parse('19970902T090000.5')
     }),
     [
       datetime(1997, 9, 2, 9, 0),
@@ -3449,20 +2685,20 @@ describe('RRule', function () {
   )
 
   testRecurring('testMaxYear',
-    new RRule({freq: RRule.YEARLY,
-      count: 3,
-      bymonth: 2,
-      bymonthday: 31,
-      dtstart: parse('99970902T090000')
+    new RRule({eFreq: RRule.YEARLY,
+      diCount: 3,
+      aByMonth: 2,
+      aByMonthday: 31,
+      dtStart: parse('99970902T090000')
     }),
     []
   )
 
   testRecurring('testSubsecondStartYearly',
     new RRule({
-      freq: RRule.YEARLY,
-      count: 1,
-      dtstart: new Date(1420063200001)
+      eFreq: RRule.YEARLY,
+      diCount: 1,
+      dtStart: new Date(1420063200001)
     }),
     [
       new Date(1420063200001)
@@ -3471,10 +2707,10 @@ describe('RRule', function () {
 
   testRecurring('testSubsecondStartMonthlyByMonthDay',
     new RRule({
-      freq: RRule.MONTHLY,
-      count: 1,
+      eFreq: RRule.MONTHLY,
+      diCount: 1,
       bysetpos: [-1, 1],
-      dtstart: new Date(1356991200001)
+      dtStart: new Date(1356991200001)
     }),
     [
       new Date(1356991200001)
@@ -3485,84 +2721,28 @@ describe('RRule', function () {
     'YEARLY,MONTHLY,DAILY,HOURLY,MINUTELY,SECONDLY'.split(',').forEach(function (freqStr: keyof typeof Frequency) {
       const date = new Date(1356991200001)
       const rr = new RRule({
-        freq: RRule[freqStr],
-        dtstart: date
+        eFreq: RRule[freqStr],
+        dtStart: date
       })
 
-      expect(date.getTime()).equals(rr.options.dtstart.getTime(),
-        'the supplied dtstart differs from RRule.options.dtstart')
-      let res: Date = rr.before(rr.after(rr.options.dtstart))
+      expect(date.getTime()).equals(rr.options.dtStart.getTime(),
+        'the supplied dtStart differs from RRule.options.dtStart')
+      let res: Date = rr.before(rr.after(rr.options.dtStart))
 
       let resTimestamp: number
       if (res != null) resTimestamp = res.getTime()
-      expect(resTimestamp).equals(rr.options.dtstart.getTime(),
-        'after dtstart , followed by before does not return dtstart')
+      expect(resTimestamp).equals(rr.options.dtStart.getTime(),
+        'after dtStart , followed by before does not return dtStart')
     })
   })
 
-  it('testConvertAndBack', function () {
-    [6, RRule.SU].forEach(function (wkst) {
-      const rr = new RRule({
-        dtstart: new Date(Date.UTC(2017, 9, 17, 0, 30, 0, 0)),
-        until: new Date(Date.UTC(2017, 11, 22, 1, 30, 0, 0)),
-        freq: RRule.MONTHLY,
-        interval: 1,
-        bysetpos: 17,
-        byweekday: [RRule.SU, RRule.MO, RRule.TU, RRule.WE, RRule.TH, RRule.FR, RRule.SA],
-        wkst: wkst,
-        byhour: 11,
-        byminute: 0,
-        bysecond: 0
-      })
-
-      const rrstr = rr.toString()
-      expect(rrstr).equals('DTSTART:20171017T003000Z\nRRULE:UNTIL=20171222T013000Z;FREQ=MONTHLY;INTERVAL=1;BYSETPOS=17;BYDAY=SU,MO,TU,WE,TH,FR,SA;WKST=SU;BYHOUR=11;BYMINUTE=0;BYSECOND=0')
-      const newrr = RRule.fromString(rrstr)
-      expect(rrstr).equals(newrr.toString())
-    })
-  })
-
-  it('testByHourValues', function () {
-    [
-      ['DTSTART:20171101T010000Z\nRRULE:UNTIL=20171214T013000Z;FREQ=DAILY;INTERVAL=2;WKST=MO;BYHOUR=11,12;BYMINUTE=30;BYSECOND=0', 'every 2 days at 11 and 12 until December 13, 2017'],
-      ['DTSTART:20171101T010000Z\nRRULE:UNTIL=20171214T013000Z;FREQ=DAILY;INTERVAL=2;WKST=MO;BYHOUR=11;BYMINUTE=30;BYSECOND=0', 'every 2 days at 11 until December 13, 2017']
-    ].forEach(function (pair) {
-      const rule = pair[0]
-      const rr = RRule.fromString(rule)
-      // tslint:disable-next-line:no-unused-expression
-      expect(rr.toText()).to.be.ok
-      // assert.equal(rr.toText(), pair[1]) -- can't test this because it reports in local time which varies by machine
-    })
-  })
-
-  it('calculates daily recurrences correctly across DST boundaries', () => {
-    const rrule = RRule.fromString('DTSTART=20181101T110000Z;UNTIL=20181106T110000Z;FREQ=DAILY')
-    expect(rrule.all()).to.deep.equal([
-      new Date('2018-11-01T11:00:00.000Z'),
-      new Date('2018-11-02T11:00:00.000Z'),
-      new Date('2018-11-03T11:00:00.000Z'),
-      new Date('2018-11-04T11:00:00.000Z'),
-      new Date('2018-11-05T11:00:00.000Z'),
-      new Date('2018-11-06T11:00:00.000Z')
-    ])
-  })
-
-  it('calculates weekly recurrences correctly across DST boundaries', () => {
-    const rrule = RRule.fromString('DTSTART=20181031T180000Z\nRRULE:FREQ=WEEKLY;UNTIL=20181115T050000Z')
-    expect(rrule.all()).to.deep.equal([
-      new Date('2018-10-31T18:00:00.000Z'),
-      new Date('2018-11-07T18:00:00.000Z'),
-      new Date('2018-11-14T18:00:00.000Z')
-    ])
-  })
-
-  it('calculates byweekday recurrences correctly across DST boundaries', () => {
+  it('calculates aByWeekday recurrences correctly across DST boundaries', () => {
     let rule = new RRule({
-      freq: RRule.WEEKLY,
-      dtstart: new Date(Date.UTC(2018, 9, 0, 0, 0, 0)),
-      interval: 1,
-      byweekday: [RRule.SU, RRule.WE],
-      until: new Date(Date.UTC(2018, 9, 9, 0, 0, 0))
+      eFreq: RRule.WEEKLY,
+      dtStart: new Date(Date.UTC(2018, 9, 0, 0, 0, 0)),
+      dwInterval: 1,
+      aByWeekday: [RRule.SU, RRule.WE],
+      dtUntil: new Date(Date.UTC(2018, 9, 9, 0, 0, 0))
     })
 
     expect(rule.all()).to.deep.equal([
@@ -3577,10 +2757,10 @@ describe('RRule', function () {
     const endSearch = 1543618799999
 
     const rrule = new RRule({
-      freq: RRule.WEEKLY,
-      interval: 1,
-      dtstart: new Date(startEvent),
-      until: new Date(endSearch)
+      eFreq: RRule.WEEKLY,
+      dwInterval: 1,
+      dtStart: new Date(startEvent),
+      dtUntil: new Date(endSearch)
     })
 
     expect(rrule.all()).to.deep.equal([
@@ -3609,10 +2789,10 @@ describe('RRule', function () {
     const end = new Date(Date.parse('Mon Oct 08 2018 11:00:00 GMT+0530'))
 
     const rrule = new RRule({
-      freq: RRule.MONTHLY,
-      interval: 1,
-      dtstart: start,
-      until: end
+      eFreq: RRule.MONTHLY,
+      dwInterval: 1,
+      dtStart: start,
+      dtUntil: end
     })
 
     expect(rrule.all()).to.deep.equal([
@@ -3622,45 +2802,18 @@ describe('RRule', function () {
     ])
   })
 
-  it('generates around dst (#249)', () => {
-    const ruleString = 'DTSTART:20181101T120000Z\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,FR;COUNT=4;WKST=SU';
-    const rrule = RRule.fromString(ruleString);
-
-    expect(rrule.all()).to.deep.equal([
-      new Date('2018-11-02T12:00:00.000Z'),
-      new Date('2018-11-05T12:00:00.000Z'),
-      new Date('2018-11-07T12:00:00.000Z'),
-      new Date('2018-11-09T12:00:00.000Z')
-    ])
-  })
-
-  it('handles 3-digit years properly (#202)', () => {
-    const rrule = new RRule({
-      count: 1,
-      dtstart: new Date(Date.UTC(990, 0, 1, 0, 0, 0))
-    })
-    const ruleString = rrule.toString()
-    const rrule2 = RRule.fromString(ruleString)
-
-    expect(ruleString).to.equal('DTSTART:09900101T000000Z\nRRULE:COUNT=1')
-    expect(rrule2.count()).to.equal(1)
-    expect(rrule2.all()).to.deep.equal([
-      new Date(Date.UTC(990, 0, 1, 0, 0, 0))
-    ])
-  })
-
   describe('time zones', () => {
     const targetZone = 'America/Los_Angeles'
     const startDate = DateTime.utc(2013, 8, 6, 11, 0, 0)
-    const dtstart = startDate.toJSDate()
+    const dtStart = startDate.toJSDate()
 
     it('generates correct recurrences when recurrence is in dst and current time is standard time', () => {
       const currentLocalDate = DateTime.local(2013, 2, 6, 11, 0, 0)
       setMockDate(currentLocalDate.toJSDate())
 
       const rule = new RRule({
-        dtstart,
-        count: 1,
+        dtStart,
+        diCount: 1,
         tzid: targetZone
       })
       const recurrence = rule.all()[0]
@@ -3679,8 +2832,8 @@ describe('RRule', function () {
       setMockDate(currentLocalDate.toJSDate())
 
       const rule = new RRule({
-        dtstart,
-        count: 1,
+        dtStart,
+        diCount: 1,
         tzid: targetZone
       })
       const recurrence = rule.all()[0]
@@ -3699,8 +2852,8 @@ describe('RRule', function () {
       setMockDate(currentLocalDate.toJSDate())
 
       const rule = new RRule({
-        dtstart,
-        count: 1,
+        dtStart,
+        diCount: 1,
         tzid: targetZone
       })
       const recurrence = rule.after(new Date(0))
@@ -3715,16 +2868,16 @@ describe('RRule', function () {
     })
   })
 
-  it('throws an error when dtstart is invalid', () => {
+  it('throws an error when dtStart is invalid', () => {
     const invalidDate = new Date(undefined)
     const validDate = new Date(Date.UTC(2017, 0, 1))
-    expect(() => new RRule({ dtstart: invalidDate })).to.throw('Invalid options: dtstart')
-    expect(() => new RRule({ dtstart: validDate, until: invalidDate })).to.throw('Invalid options: until')
+    expect(() => new RRule({ dtStart: invalidDate })).to.throw('Invalid options: dtStart')
+    expect(() => new RRule({ dtStart: validDate, dtUntil: invalidDate })).to.throw('Invalid options: dtUntil')
 
     const rule = new RRule({
-      dtstart: new Date(Date.UTC(2017, 0, 1)),
-      freq: Frequency.DAILY,
-      interval: 1
+      dtStart: new Date(Date.UTC(2017, 0, 1)),
+      eFreq: Frequency.DAILY,
+      dwInterval: 1
     })
 
     expect(() => rule.after(invalidDate)).to.throw('Invalid date passed in to RRule.after')

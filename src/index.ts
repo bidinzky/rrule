@@ -15,16 +15,13 @@
  */
 
 import RRule from './rrule'
-import RRuleSet from './rruleset'
 
-export { rrulestr } from './rrulestr'
-export { Frequency, ByWeekday, Options } from './types'
+export { Frequency, ByWeekday, Options, EventStartType } from './types'
 export { Weekday, WeekdayStr } from './weekday'
-export { RRuleStrOptions } from './rrulestr'
+export { CalcSunRise } from './CalcSunRise'
 
 export {
-  RRule,
-  RRuleSet
+  RRule
 }
 
 export default RRule
